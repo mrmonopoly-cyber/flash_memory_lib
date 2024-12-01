@@ -109,9 +109,7 @@ already_init_pool:
 }
 
 int 
-flash_memory_store_new_value(
-        const TPagePool* self, 
-        const StoreNewValueInputArgs* const args)
+flash_memory_store_new_value(const TPagePool* self, const StoreNewValueInputArgs* const args)
 {
     THROW_ERROR_IF_HAPPEN(input_check_store_new_value_input(args), {goto err_input_ptr;});
 
@@ -120,9 +118,7 @@ err_input_ptr:
 }
 
 int 
-flash_memory_fetch_value(
-        const TPagePool* const self, 
-        const FetchValueInputArgs* const args)
+flash_memory_fetch_value(const TPagePool* const self, const FetchValueInputArgs* const args)
 {
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_fetch_value_input(args), {goto err_input_ptr;})
@@ -133,9 +129,7 @@ err_input_ptr:
 }
 
 int 
-flash_memory_update_value(
-        const TPagePool* const self,
-        const UpdateValueInputArgs* const args)
+flash_memory_update_value(const TPagePool* const self,const UpdateValueInputArgs* const args)
 {
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_update_value_input(args), {goto err_input_ptr;})
@@ -146,10 +140,7 @@ err_input_ptr:
 }
 
 int 
-flash_memory_get_var_metadata(
-        const TPagePool* const self,
-        const uint32_t var_id,
-        const MetadataStoreVariableInFlash* args)
+flash_memory_get_var_metadata(const TPagePool* const self,const MetadataStoreVariableInFlash* args)
 {
 
     INPUT_PTR_CHECK(self);
