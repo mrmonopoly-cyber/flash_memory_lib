@@ -3,12 +3,14 @@
 
 #include <stdint.h>
 
-#define MAX_NUMBER_OF_PAGES 10
-
 typedef uint32_t FlashDecriptor_t;
 
 typedef void PagePool_t;
-typedef void (*hardware_specific_function)(FlashDecriptor_t id_data, void* ptr_data);
+typedef int8_t (*hardware_init)(void);
+typedef uint8_t (*hardware_write)(void* extra_metadata, FlashDecriptor_t var_id,void* new_value,
+                                uint32_t size_new_value);
+typedef uint8_t (*hardware_read)(void* extra_metadata, FlashDecriptor_t var_id,void* o_buffer,
+                                uint32_t size_o_buffer);
 
 enum DataTypesInFlash {
     UINT8,
@@ -26,22 +28,21 @@ enum DataTypesInFlash {
 };
 
 typedef struct{
+    PagePool_t* out_page_pool_ptr;
+
     void* const flash_start_ptr;
     uint32_t flash_size;
-    PagePool_t* out_page_pool_ptr;
-    const hardware_specific_function post_init;
-
-    const hardware_specific_function pre_read;
-    const hardware_specific_function post_read;
-
-    const hardware_specific_function pre_write;
-    const hardware_specific_function post_write;
+    uint8_t max_number_of_vars;
+    uint8_t max_length_var_description_string; //in bytes
+    const hardware_init hw_init;
+    const hardware_read hw_read;
+    const hardware_write hw_write;
 }InitInputArgs_t;
 
 typedef struct {
     enum DataTypesInFlash data_type;
     void* value;
-    char var_description[]; //string must be NULL terminating
+    char var_description[];
 }StoreNewValueInputArgs_t;
 
 typedef struct {

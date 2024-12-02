@@ -2,21 +2,25 @@
 #include <stdint.h>
 #include <string.h>
 
-
-typedef struct MemoryPage{
-    void* ptr_data;
+typedef struct StoredVar{
     enum DataTypesInFlash data_type;
-}MemoryPage;
+    void* extra_metadata;
+    uint8_t max_length_description_string;
+    char var_description[];
+}StoredVar;
 
 struct PagePool{
-    MemoryPage pages[MAX_NUMBER_OF_PAGES];
     void* start_address_flash;
     uint32_t flash_size;
     uint8_t next;
+    uint8_t max_number_of_vars;
+    hardware_read hw_read;
+    hardware_write hw_write;
+    StoredVar vars[];
 };
 
 #define CHECK_INIT(page_pool,ret_err) if (!page_pool.start_address_flash) {return ret_err;}
-#define TPAGEPOOL_INTO_PAGEPOOL(ptr_var_name, ptr_t_page_pool)\
+#define PAGEPOOL_T_INTO_PAGEPOOL(ptr_var_name, ptr_t_page_pool)\
     struct PagePool* ptr_var_name = ptr_t_page_pool;
 
 #define INPUT_PTR_CHECK(ptr) if (ptr) {goto err_input_ptr;}
@@ -89,15 +93,20 @@ uint8_t
 flash_memory_init(const InitInputArgs_t*const args)
 {
     THROW_ERROR_IF_HAPPEN(input_check_init_input(args), {goto err_input_ptr;});
+    PAGEPOOL_T_INTO_PAGEPOOL(pool, args->out_page_pool_ptr);
+    if (!pool->start_address_flash) goto already_init_pool;
 
-    TPAGEPOOL_INTO_PAGEPOOL(pool, args->out_page_pool_ptr);
-    if (!pool->start_address_flash) {
-        goto already_init_pool;
-    }
+    uint32_t var_array_size = pool->max_number_of_vars * sizeof(pool->vars[0]);
 
     pool->start_address_flash = args->flash_start_ptr;
     pool->flash_size = args->flash_size;
-    memset(pool->pages, 0, sizeof(pool->pages));
+    pool->hw_read = args->hw_read;
+    pool->hw_write = args->hw_write;
+    memset(pool->vars, 0, var_array_size);
+
+    if(args->hw_init() < 0){
+        goto error_init_hw;
+    }
 
     return 0;
 
@@ -106,12 +115,18 @@ err_input_ptr:
 
 already_init_pool:
     return -2;
+
+error_init_hw:
+    memset(args->out_page_pool_ptr, 0, sizeof(*args->out_page_pool_ptr));
+    return -3;
 }
 
 uint8_t
 flash_memory_store_new_value(const PagePool_t* self, const StoreNewValueInputArgs_t* const args)
 {
     THROW_ERROR_IF_HAPPEN(input_check_store_new_value_input(args), {goto err_input_ptr;});
+
+    return 0;
 
 err_input_ptr:
     return -1;
@@ -123,6 +138,7 @@ flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_fetch_value_input(args), {goto err_input_ptr;})
 
+    return 0;
 
 err_input_ptr:
     return -1;
@@ -134,6 +150,7 @@ flash_memory_update_value(const PagePool_t* const self,const UpdateValueInputArg
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_update_value_input(args), {goto err_input_ptr;})
 
+    return 0;
 
 err_input_ptr:
     return -1;
@@ -146,6 +163,7 @@ flash_memory_get_var_metadata(const PagePool_t* const self,const MetadataStoreVa
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_get_var_metadata_input(args), {goto err_input_ptr;});
 
+    return 0;
 
 err_input_ptr:
     return -1;
