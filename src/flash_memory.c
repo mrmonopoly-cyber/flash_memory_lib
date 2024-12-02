@@ -24,7 +24,7 @@ struct PagePool{
 
 //private
 
-static int input_check_init_input(const InitInputArgs* args)
+static int input_check_init_input(const InitInputArgs_t* args)
 {
     INPUT_PTR_CHECK(args);
     INPUT_PTR_CHECK(args->flash_start_ptr);
@@ -37,7 +37,7 @@ err_input_ptr:
     return -1;
 }
 
-static int input_check_store_new_value_input(const StoreNewValueInputArgs* args)
+static int input_check_store_new_value_input(const StoreNewValueInputArgs_t* args)
 {
     INPUT_PTR_CHECK(args);
     INPUT_PTR_CHECK(args->value);
@@ -49,7 +49,7 @@ err_input_ptr:
     return -1;
 }
 
-static int input_check_fetch_value_input(const FetchValueInputArgs* args)
+static int input_check_fetch_value_input(const FetchValueInputArgs_t* args)
 {
     INPUT_PTR_CHECK(args);
     INPUT_PTR_CHECK(args->out_parameter);
@@ -60,7 +60,7 @@ err_input_ptr:
     return -1;
 }
 
-static int input_check_update_value_input(const UpdateValueInputArgs* args)
+static int input_check_update_value_input(const UpdateValueInputArgs_t* args)
 {
     INPUT_PTR_CHECK(args);
     INPUT_PTR_CHECK(args->new_value);
@@ -72,7 +72,7 @@ err_input_ptr:
     return -1;
 }
 
-static int input_check_get_var_metadata_input(const MetadataStoreVariableInFlash* args){
+static int input_check_get_var_metadata_input(const MetadataStoreVariableInFlash_t* args){
     INPUT_PTR_CHECK(args);
     INPUT_PTR_CHECK(args->var_description);
     if (args->data_type > DOUBLE) goto err_input_ptr;
@@ -85,8 +85,8 @@ err_input_ptr:
 
 
 //public
-int 
-flash_memory_init(const InitInputArgs*const args)
+uint8_t
+flash_memory_init(const InitInputArgs_t*const args)
 {
     THROW_ERROR_IF_HAPPEN(input_check_init_input(args), {goto err_input_ptr;});
 
@@ -108,8 +108,8 @@ already_init_pool:
     return -2;
 }
 
-int 
-flash_memory_store_new_value(const TPagePool* self, const StoreNewValueInputArgs* const args)
+uint8_t
+flash_memory_store_new_value(const PagePool_t* self, const StoreNewValueInputArgs_t* const args)
 {
     THROW_ERROR_IF_HAPPEN(input_check_store_new_value_input(args), {goto err_input_ptr;});
 
@@ -117,8 +117,8 @@ err_input_ptr:
     return -1;
 }
 
-int 
-flash_memory_fetch_value(const TPagePool* const self, const FetchValueInputArgs* const args)
+uint8_t
+flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs_t* const args)
 {
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_fetch_value_input(args), {goto err_input_ptr;})
@@ -128,8 +128,8 @@ err_input_ptr:
     return -1;
 }
 
-int 
-flash_memory_update_value(const TPagePool* const self,const UpdateValueInputArgs* const args)
+uint8_t
+flash_memory_update_value(const PagePool_t* const self,const UpdateValueInputArgs_t* const args)
 {
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_update_value_input(args), {goto err_input_ptr;})
@@ -139,8 +139,8 @@ err_input_ptr:
     return -1;
 }
 
-int 
-flash_memory_get_var_metadata(const TPagePool* const self,const MetadataStoreVariableInFlash* args)
+uint8_t
+flash_memory_get_var_metadata(const PagePool_t* const self,const MetadataStoreVariableInFlash_t* args)
 {
 
     INPUT_PTR_CHECK(self);

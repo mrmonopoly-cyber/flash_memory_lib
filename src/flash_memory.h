@@ -5,10 +5,10 @@
 
 #define MAX_NUMBER_OF_PAGES 10
 
-typedef uint32_t FlashDecriptor;
+typedef uint32_t FlashDecriptor_t;
 
-typedef void TPagePool;
-typedef void (*hardware_specific_function)(FlashDecriptor id_data, void* ptr_data);
+typedef void PagePool_t;
+typedef void (*hardware_specific_function)(FlashDecriptor_t id_data, void* ptr_data);
 
 enum DataTypesInFlash {
     UINT8,
@@ -28,7 +28,7 @@ enum DataTypesInFlash {
 typedef struct{
     void* const flash_start_ptr;
     uint32_t flash_size;
-    TPagePool* out_page_pool_ptr;
+    PagePool_t* out_page_pool_ptr;
     const hardware_specific_function post_init;
 
     const hardware_specific_function pre_read;
@@ -36,45 +36,45 @@ typedef struct{
 
     const hardware_specific_function pre_write;
     const hardware_specific_function post_write;
-}InitInputArgs;
+}InitInputArgs_t;
 
 typedef struct {
     enum DataTypesInFlash data_type;
     void* value;
     char var_description[]; //string must be NULL terminating
-}StoreNewValueInputArgs;
+}StoreNewValueInputArgs_t;
 
 typedef struct {
-    FlashDecriptor var_id;
+    FlashDecriptor_t var_id;
     const void* out_parameter;
     const uint32_t size_out_parameter; //in bytes
-}FetchValueInputArgs;
+}FetchValueInputArgs_t;
 
 typedef struct {
-    FlashDecriptor var_id;
+    FlashDecriptor_t var_id;
     const void* new_value; 
     const uint32_t size_new_value; //in bytes
-}UpdateValueInputArgs;
+}UpdateValueInputArgs_t;
 
 typedef struct{
-    const FlashDecriptor var_id;
+    const FlashDecriptor_t var_id;
     enum DataTypesInFlash data_type;
     const char* const var_description;
-}MetadataStoreVariableInFlash;
+}MetadataStoreVariableInFlash_t;
 
-int 
-flash_memory_init(const InitInputArgs*const args);
+uint8_t
+flash_memory_init(const InitInputArgs_t*const args);
 
-int 
-flash_memory_store_new_value(const TPagePool* self, const StoreNewValueInputArgs* const args);
+uint8_t
+flash_memory_store_new_value(const PagePool_t* self, const StoreNewValueInputArgs_t* const args);
 
-int 
-flash_memory_fetch_value(const TPagePool* const self, const FetchValueInputArgs* const args);
+uint8_t
+flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs_t* const args);
 
-int 
-flash_memory_update_value(const TPagePool* const self,const UpdateValueInputArgs* const args);
+uint8_t
+flash_memory_update_value(const PagePool_t* const self,const UpdateValueInputArgs_t* const args);
 
-int 
-flash_memory_get_var_metadata(const TPagePool* const self,const MetadataStoreVariableInFlash* args);
+uint8_t
+flash_memory_get_var_metadata(const PagePool_t* const self,const MetadataStoreVariableInFlash_t* args);
 
 #endif // !__FLASH_MEMORY__
