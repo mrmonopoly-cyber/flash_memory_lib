@@ -5,9 +5,10 @@
 
 #define MAX_NUMBER_OF_PAGES 10
 
-typedef void TPagePool;
-typedef void (*hardware_specific_function)(void);
 typedef uint32_t FlashDecriptor;
+
+typedef void TPagePool;
+typedef void (*hardware_specific_function)(FlashDecriptor id_data, void* ptr_data);
 
 enum DataTypesInFlash {
     UINT8,
