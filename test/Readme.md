@@ -18,9 +18,10 @@ To run all tests at in once run the following command
 ```
 
 ### One test
-Enter the directory of the test, example:
+Enter the directory of the tests and choose the test to execute, example:
 
 ```sh
+    cd ./tests
     cd ./init
 ```
 
@@ -33,4 +34,3 @@ Run the test:
 If you want to add a new test run the following command:
 ```sh
     ./add_test.sh [name]
-```

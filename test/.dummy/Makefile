@@ -2,8 +2,23 @@ CC = gcc
 C_FLAGS = -Wall -Wextra
 C_EXFLAGS = 
 
-flash_memory_src_path := $(or $(FLASH_MEMORY_ROOT), .)
-flash_memory.c := $(flash_memory_src_path)/flash_memory.c
+TEST_ROOT = .
+OUT_NAME = main
+
+ifndef $(FLASH_MEMORY_ROOT_GENERAL)
+FLASH_MEMORY_ROOT_GENERAL:= $(TEST_ROOT)/project_root
+include $(FLASH_MEMORY_ROOT_GENERAL)/Makefile
+endif
+
+ifndef $(TEST_FLASH_ROOT)
+TEST_FLASH_ROOT:= $(TEST_ROOT)/test_flash/
+include $(TEST_FLASH_ROOT)/Makefile
+endif
+
+
+
+main.c := $(TEST_ROOT)/main.c
+OBJECT = $(wildcard *.o)
 
 all: release
 
@@ -16,14 +31,14 @@ debug: clean compile
 release: C_FLAGS += $(RELEASE_FLAGS)
 release: clean compile
 
-compile: flash_memory.o
+compile: main
 
-flash_memory.o: $(flash_memory.c) 
-	$(CC) $(C_FLAGS) $(C_EXFLAGS) $(DEBUG) $(flash_memory.c) -c
+main: $(main.c) 
+	$(CC) $(C_FLAGS) $(C_EXFLAGS) $(DEBUG) $(OBJECT) $(main.c) -o $(OUT_NAME)
 
-flash_memory_clean:
-ifeq ($(wildcard flash_memory.o), flash_memory.o)
-	rm flash_memory.o
+test_clean:
+ifeq ($(wildcard main), main)
+	rm $(OUT_NAME)
 endif
 
-clean: flash_memory_clean
+clean: test_clean
