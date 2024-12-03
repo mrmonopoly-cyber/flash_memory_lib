@@ -7,7 +7,7 @@ flash_memory.c := $(flash_memory_src_path)/flash_memory.c
 
 all: release
 
-DEBUG_FLAGS = -O0 -fsanitize=address -g
+DEBUG_FLAGS = -O0 -fsanitize=address -DDEBUG
 RELEASE_FLAGS = -O2
 
 debug: C_FLAGS += $(DEBUG_FLAGS)
