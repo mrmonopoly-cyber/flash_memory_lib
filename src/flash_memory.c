@@ -134,7 +134,7 @@ error_invalid_size:
 }
 
 //public
-uint8_t
+int8_t
 flash_memory_init(const InitInputArgs_t*const args)
 {
     THROW_ERROR_IF_HAPPEN(input_check_init_input(args), {goto err_input_ptr;});
@@ -170,7 +170,7 @@ err_input_ptr:
     return err;
 }
 
-uint8_t
+int8_t
 flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* const args)
 {
     THROW_ERROR_IF_HAPPEN(input_check_store_new_value_input(args), {goto err_input_ptr;});
@@ -216,7 +216,7 @@ err_input_ptr:
     return err;
 }
 
-uint8_t
+int8_t
 flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs_t* const args)
 {
     INPUT_PTR_CHECK(self);
@@ -251,7 +251,7 @@ err_input_ptr:
     return err;
 }
 
-uint8_t
+int8_t
 flash_memory_update_value(PagePool_t* const self,const UpdateValueInputArgs_t* const args)
 {
     INPUT_PTR_CHECK(self);
@@ -287,7 +287,7 @@ err_input_ptr:
     return err;
 }
 
-uint8_t
+int8_t
 flash_memory_get_var_metadata(const PagePool_t* const self,MetadataStoreVariableInFlash_t* args)
 {
     INPUT_PTR_CHECK(self);
