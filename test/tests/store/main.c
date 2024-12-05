@@ -62,10 +62,11 @@ static int invalid_store_NULL_var(PagePool_t* pool, FlashDecriptor_t* o_var_id){
 }
 
 static int invalid_store_wrong_data_type(PagePool_t* pool, FlashDecriptor_t* o_var_id){
+    const char a = 2;
     const StoreNewValueInputArgs_t args = {
-        .data_type = UINT8,
+        .data_type = 24,
         .var_description = "an invalid store",
-        .value = NULL,
+        .value = &a,
     };
     int8_t err = flash_memory_store_new_value(pool, &args, o_var_id);
     if(err < 0){
