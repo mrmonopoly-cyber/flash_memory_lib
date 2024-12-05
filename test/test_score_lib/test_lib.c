@@ -5,7 +5,7 @@
 #define Color_Red "\33[31m" 
 #define Color_Green "\33[32m" 
 #define Color_end "\33[0m" // To flush out prev settings
-                           //
+
 static uint8_t passed = 0;
 static uint8_t failed = 0;
 

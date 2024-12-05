@@ -12,7 +12,7 @@ fi
 
 cd ./tests/
 for TEST_DIR in $(/bin/ls -d */ 2>/dev/null ); do
-    echo $TEST_DIR
+    echo testing $(echo $TEST_DIR | cut -d'/' -f1)
     cd $TEST_DIR
     echo building in DEBUG mode
     make debug

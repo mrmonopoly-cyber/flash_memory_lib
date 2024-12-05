@@ -48,7 +48,7 @@ typedef struct{
 
 typedef struct {
     enum DataTypesInFlash data_type;
-    void* value;
+    const void* value;
     char* var_description;
 }StoreNewValueInputArgs_t;
 
@@ -74,7 +74,8 @@ int8_t
 flash_memory_init(const InitInputArgs_t*const args);
 
 int8_t
-flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* const args);
+flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* const args,
+        FlashDecriptor_t* o_fd);
 
 int8_t
 flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs_t* const args);

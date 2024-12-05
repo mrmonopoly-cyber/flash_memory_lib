@@ -35,7 +35,7 @@ uint8_t assert_size_stored_var_1[(sizeof(struct StoredVar) == STORED_VAR_SIZE) ?
 #define INPUT_PTR_CHECK(ptr) if (!ptr) {goto err_input_ptr;}
 #define THROW_ERROR_IF_HAPPEN(err_exp,expr) if (err_exp) {expr;}
 
-#define INIT_CHECK(pool,exp) if (pool->hw_read) {exp}
+#define INIT_CHECK(pool,exp) if (!pool->hw_read) {exp}
 
 #define FIND_VAR_AND_EXECUTE_EXPR_ON_IT(pool,var_id,expr)\
     const StoredVar* var = NULL;\
@@ -143,9 +143,10 @@ error_invalid_size:
 int8_t
 flash_memory_init(const InitInputArgs_t*const args)
 {
+    volatile int8_t err=0;
     THROW_ERROR_IF_HAPPEN(input_check_init_input(args) < 0, {goto err_input_ptr;});
     PAGEPOOL_T_INTO_PAGEPOOL(pool, args->out_page_pool_ptr);
-    INIT_CHECK(pool, {goto already_init_pool;});
+    if (pool->hw_read) goto already_init_pool;
 
     uint32_t var_array_size = pool->max_number_of_vars * sizeof(pool->vars[0]);
 
@@ -163,7 +164,6 @@ flash_memory_init(const InitInputArgs_t*const args)
     return 0;
 
 
-    volatile int8_t err=0;
 error_init_hw:
     memset(args->out_page_pool_ptr, 0, sizeof(struct PagePool));
     SET_HIGHER_ERROR_VALUE(err, -3);
@@ -176,14 +176,17 @@ err_input_ptr:
 }
 
 int8_t
-flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* const args)
+flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* const args,
+        FlashDecriptor_t* o_fd)
 {
+    volatile int8_t err = 0;
     THROW_ERROR_IF_HAPPEN(input_check_store_new_value_input(args) < 0, {goto err_input_ptr;});
     PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
     INIT_CHECK(pool, {goto pool_not_initialized;});
 
     StoredVar* new_var = &pool->vars[pool->next_var];
     void** extra_metadata = &new_var->extra_metadata;
+    *o_fd = 0;
     if(pool->hw_id_var(args->data_type,&new_var->fd, extra_metadata ) < 0){
         goto error_assigning_fd_to_var;
     }
@@ -197,16 +200,16 @@ flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* c
     }
     new_var->var_description = args->var_description;
     new_var->data_type = args->data_type;
+    *o_fd = new_var->fd;
 
     return 0;
 
-
-    volatile int8_t err = 0;
 error_hw_writing_bytes:
     if (pool->free_metadata){
         pool->free_metadata(new_var->extra_metadata);
         new_var->extra_metadata = NULL;
     }
+    err =0;
     SET_HIGHER_ERROR_VALUE(err, -5);
 error_computing_size_of_var:
     SET_HIGHER_ERROR_VALUE(err, -4);
@@ -224,6 +227,7 @@ err_input_ptr:
 int8_t
 flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs_t* const args)
 {
+    volatile int8_t err=0;
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_fetch_value_input(args) < 0, {goto err_input_ptr;})
     CONST_PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
@@ -241,9 +245,7 @@ flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs
         return 0;
     });
 
-    volatile int8_t err=0;
 variable_not_found:
-    err =0;
     SET_HIGHER_ERROR_VALUE(err, -5);
 hw_read_error:
     SET_HIGHER_ERROR_VALUE(err, -4);
@@ -260,6 +262,7 @@ err_input_ptr:
 int8_t
 flash_memory_update_value(PagePool_t* const self,const UpdateValueInputArgs_t* const args)
 {
+    int8_t err=0;
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_update_value_input(args) < 0, {goto err_input_ptr;})
     PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
@@ -278,9 +281,7 @@ flash_memory_update_value(PagePool_t* const self,const UpdateValueInputArgs_t* c
 
 
 
-    int8_t err=0;
 variable_not_found:
-    err=0;
     SET_HIGHER_ERROR_VALUE(err, -5);
 hw_write_error:
     SET_HIGHER_ERROR_VALUE(err, -4);
@@ -297,6 +298,7 @@ err_input_ptr:
 int8_t
 flash_memory_get_var_metadata(const PagePool_t* const self,MetadataStoreVariableInFlash_t* args)
 {
+    volatile int8_t err =0;
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_get_var_metadata_input(args) < 0, {goto err_input_ptr;});
     CONST_PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
@@ -310,9 +312,7 @@ flash_memory_get_var_metadata(const PagePool_t* const self,MetadataStoreVariable
         return 0;
     });
 
-    int8_t err;
 variable_not_found:
-    err=0;
     SET_HIGHER_ERROR_VALUE(err, -3);
 err_input_ptr:
     SET_HIGHER_ERROR_VALUE(err, -2);
