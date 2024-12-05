@@ -35,6 +35,25 @@ static int store_new_var(PagePool_t* pool,FlashDecriptor_t* o_var_id, const Stor
 
 }
 
+static int read_var(PagePool_t* pool, FlashDecriptor_t fd, uint64_t desired_v){
+    uint64_t ra = 0;
+    const FetchValueInputArgs_t read_aa_args = {
+        .var_id = fd,
+        .out_parameter = &ra,
+        .size_out_parameter = sizeof(ra),
+    };
+    int8_t err = flash_memory_fetch_value(pool, &read_aa_args);
+    if (err < 0) {
+        return err;
+    }else{
+        if (ra != desired_v) {
+            return -7;
+        }else{
+        }
+    }
+    return 0;
+}
+
 int main(int argc __attribute_maybe_unused__, char *argv[] __attribute_maybe_unused__)
 {
     const uint8_t pool_size = 10;
@@ -56,6 +75,7 @@ int main(int argc __attribute_maybe_unused__, char *argv[] __attribute_maybe_unu
         return -2;
     }
 
+    int8_t err = 0;
     uint16_t bb = 512;
     FlashDecriptor_t fd_bb;
     const StoreNewValueInputArgs_t bb_args = {
@@ -65,45 +85,38 @@ int main(int argc __attribute_maybe_unused__, char *argv[] __attribute_maybe_unu
     };
     if (store_new_var(pool,&fd_bb, &bb_args) < 0) {
         FAILED("failed storing a var");
+    }else{
+        PASSED("data fetched and are correct");
     }
 
-    uint64_t ab = 0;
-    const FetchValueInputArgs_t read_bb_args = {
-        .var_id = fd_bb,
-        .out_parameter = &ab,
-        .size_out_parameter = sizeof(ab),
-    };
-    int8_t err = flash_memory_fetch_value(pool, &read_bb_args);
+    err = read_var(pool, fd_a, aa);
     if (err < 0) {
-        FAILED("failed to fetch data of bb with error:");
-        fprintf(stderr,"%d and key %d\n",err,fd_bb);
+        FAILED("failed reading a var");
+        fprintf(stderr, "error code: %d\n", err);
     }else{
-        if (ab != 512) {
-            FAILED("data fetched of bb ok but obtained wrong value:");
-            fprintf(stderr,"desired: %d, obtained %ld\n",bb,ab);
-        }else{
-            PASSED("data fetched and are correct");
-        }
+        PASSED("data fetched for var_b and are correct");
+    }
+    
+    err = read_var(pool, fd_bb, bb);
+    if (err < 0) {
+        FAILED("failed reading a var");
+        fprintf(stderr, "error code: %d\n", err);
+    }else{
+        PASSED("data fetched for var_b and are correct");
     }
 
-    uint64_t ra = 0;
-    const FetchValueInputArgs_t read_aa_args = {
-        .var_id = fd_a,
-        .out_parameter = &ra,
-        .size_out_parameter = sizeof(ra),
-    };
-    int8_t err_a = flash_memory_fetch_value(pool, &read_aa_args);
-    if (err_a < 0) {
-        FAILED("failed to fetch data of aa with error:");
-        fprintf(stderr,"%d and key %d\n",err,fd_a);
-    }else{
-        if (ab != 512) {
-            FAILED("data fetched of aa ok but obtained wrong value:");
-            fprintf(stderr,"desired: %d, obtained %ld\n",aa,ra);
+    err = read_var(pool, 82, aa);
+    if (err < 0) {
+        if (err == -5) {
+            PASSED("variable with wrong id not founded with correct error");
         }else{
-            PASSED("data fetched and are correct");
+            FAILED("variable with wrong id not founded but with wrong error");
+            fprintf(stderr, "err: %d\n", err);
         }
+    }else{
+            FAILED("variable with wrong founded");
     }
+
     print_status_flash();
 
     print_SCORE();
