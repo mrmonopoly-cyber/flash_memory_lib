@@ -56,6 +56,56 @@ int main(int argc __attribute_maybe_unused__, char *argv[] __attribute_maybe_unu
         return -2;
     }
 
+    uint16_t bb = 512;
+    FlashDecriptor_t fd_bb;
+    const StoreNewValueInputArgs_t bb_args = {
+        .value = &bb,
+        .data_type = UINT16,
+        .var_description = "a variable 512"
+    };
+    if (store_new_var(pool,&fd_bb, &bb_args) < 0) {
+        FAILED("failed storing a var");
+    }
+
+    uint64_t ab = 0;
+    const FetchValueInputArgs_t read_bb_args = {
+        .var_id = fd_bb,
+        .out_parameter = &ab,
+        .size_out_parameter = sizeof(ab),
+    };
+    int8_t err = flash_memory_fetch_value(pool, &read_bb_args);
+    if (err < 0) {
+        FAILED("failed to fetch data of bb with error:");
+        fprintf(stderr,"%d and key %d\n",err,fd_bb);
+    }else{
+        if (ab != 512) {
+            FAILED("data fetched of bb ok but obtained wrong value:");
+            fprintf(stderr,"desired: %d, obtained %ld\n",bb,ab);
+        }else{
+            PASSED("data fetched and are correct");
+        }
+    }
+
+    uint64_t ra = 0;
+    const FetchValueInputArgs_t read_aa_args = {
+        .var_id = fd_a,
+        .out_parameter = &ra,
+        .size_out_parameter = sizeof(ra),
+    };
+    int8_t err_a = flash_memory_fetch_value(pool, &read_aa_args);
+    if (err_a < 0) {
+        FAILED("failed to fetch data of aa with error:");
+        fprintf(stderr,"%d and key %d\n",err,fd_a);
+    }else{
+        if (ab != 512) {
+            FAILED("data fetched of aa ok but obtained wrong value:");
+            fprintf(stderr,"desired: %d, obtained %ld\n",aa,ra);
+        }else{
+            PASSED("data fetched and are correct");
+        }
+    }
+    print_status_flash();
+
     print_SCORE();
 
     return EXIT_SUCCESS;

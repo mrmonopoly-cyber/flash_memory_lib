@@ -42,7 +42,7 @@ uint8_t assert_size_stored_var_1[(sizeof(struct StoredVar) == STORED_VAR_SIZE) ?
     for (uint8_t i=0; i<pool->next_var; i++) {\
         var = &pool->vars[i];\
         if (var->fd == var_id) {\
-            expr\
+            expr;\
         }\
     }\
     goto variable_not_found;
@@ -201,6 +201,7 @@ flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* c
     new_var->var_description = args->var_description;
     new_var->data_type = args->data_type;
     *o_fd = new_var->fd;
+    pool->next_var++;
 
     return 0;
 

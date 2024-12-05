@@ -5,14 +5,21 @@
 #include <string.h>
 
 //private
-#define INPUT_PTR_CHECK(ptr) if (ptr) {goto err_input_ptr;}
-#define SET_HIGHER_ERROR_VALUE(curr_err,new_err) if (*curr_err < new_err) *curr_err = new_err
+#define INPUT_PTR_CHECK(ptr) if (!ptr) {goto err_input_ptr;}
+#define SET_HIGHER_ERROR_VALUE(curr_err,new_err) if (new_err < curr_err) curr_err = new_err
 
 static struct{
     FlashDecriptor_t next_free;
 }flash_metadata;
 
 //public
+void print_status_flash(void)
+{
+    for (uint32_t i =0; i<flash_metadata.next_free; i++) {
+        print_page(i);
+    }
+}
+
 int8_t hardware_init_imp(void)
 {
     return 0;
@@ -22,6 +29,7 @@ int8_t
 hardware_write_imp(void* hw_metadata __attribute_maybe_unused__,const FlashDecriptor_t var_id, const void* new_value, 
         const uint32_t size_new_value)
 {
+    volatile int8_t err = 0;
     if (!size_new_value) {
         goto new_var_size_too_small;
     }
@@ -42,12 +50,11 @@ hardware_write_imp(void* hw_metadata __attribute_maybe_unused__,const FlashDecri
 
     return 0;
 
-    int8_t err = 0;
 
 hw_write_err:
-    SET_HIGHER_ERROR_VALUE(&err, -2);
+    SET_HIGHER_ERROR_VALUE(err, -2);
 new_var_size_too_small:
-    SET_HIGHER_ERROR_VALUE(&err, -1);
+    SET_HIGHER_ERROR_VALUE(err, -1);
 
     return err;
 }
@@ -56,6 +63,7 @@ int8_t
 hardware_read_imp(void* hw_metadata __attribute_maybe_unused__,const FlashDecriptor_t var_id,
         void* o_buffer, const uint32_t size_o_buffer)
 {
+    volatile int8_t err = 0;
     if (size_o_buffer < 8) {
         goto buffer_size_too_small;
     }
@@ -68,12 +76,11 @@ hardware_read_imp(void* hw_metadata __attribute_maybe_unused__,const FlashDecrip
 
     return 0;
 
-    int8_t err = 0;
 
 hw_imp_error:
-    SET_HIGHER_ERROR_VALUE(&err, -2);
+    SET_HIGHER_ERROR_VALUE(err, -2);
 buffer_size_too_small:
-    SET_HIGHER_ERROR_VALUE(&err, -1);
+    SET_HIGHER_ERROR_VALUE(err, -1);
 
     return err;
 }

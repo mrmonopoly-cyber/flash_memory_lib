@@ -92,21 +92,24 @@ int main(int argc __attribute_maybe_unused__, char *argv[] __attribute_maybe_unu
     if (store_new_var(pool, &aa_var_id) < 0) {
         FAILED("failed to store var aa");
     }else{
-        PASSED("var aa stored");
+        PASSED("var aa stored with id:");
+        fprintf(stderr, "%d\n", aa_var_id);
     }
 
     FlashDecriptor_t bb_var_id = 0;
     if (store_new_var(pool, &bb_var_id) < 0) {
         FAILED("failed to store var bb");
     }else{
-        PASSED("var bb stored");
+        PASSED("var bb stored with id:");
+        fprintf(stderr, "%d\n", bb_var_id);
     }
 
     FlashDecriptor_t cc_var_id = 0;
     if (store_new_var(pool, &cc_var_id) < 0) {
         FAILED("failed to store var cc");
     }else{
-        PASSED("var cc stored");
+        PASSED("var cc stored with id:");
+        fprintf(stderr, "%d\n", cc_var_id);
     }
     
 
@@ -123,7 +126,6 @@ int main(int argc __attribute_maybe_unused__, char *argv[] __attribute_maybe_unu
     }else{
         PASSED("invalid store wrong data type blocked");
     }
-
 
     print_SCORE();
 

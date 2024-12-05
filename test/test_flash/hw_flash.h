@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include "./project_root/src/flash_memory.h"
 
+void 
+print_status_flash(void);
+
 int8_t 
 hardware_init_imp(void);
 

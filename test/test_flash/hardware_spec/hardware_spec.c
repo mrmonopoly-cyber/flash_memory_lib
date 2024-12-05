@@ -1,9 +1,10 @@
 #include "./hardware_spec.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 //private
-#define INPUT_PTR_CHECK(ptr) if (ptr) {goto err_input_ptr;}
+#define INPUT_PTR_CHECK(ptr) if (!ptr) {goto err_input_ptr;}
 
 #define IFXFLASH_DFLASH_PAGE_LENGTH (8)
 #define SIZE_FLASH (5 * IFXFLASH_DFLASH_PAGE_LENGTH)
@@ -14,12 +15,15 @@ static uint8_t flash_memory[SIZE_FLASH];
 #define GET_MEMORY_ADDRESS(page)    (IFXFLASH_DFLASH_START + ((page) * IFXFLASH_DFLASH_PAGE_LENGTH))
 #define pMEM(page)                  (uint8_t *)(GET_MEMORY_ADDRESS(page))
 
-
-static inline void set_higher_error_value(int8_t* curr_err, int8_t new_err){
-    if (*curr_err < new_err) *curr_err = new_err;
-}
+#define SET_HIGHER_ERROR_VALUE(old,new) if (new < old ) old = new;
 
 //public
+
+void print_page(const uint8_t page_number)
+{
+    uint32_t* flash_ptr = (uint32_t*) pMEM(page_number);
+    printf("page number %d: %d,%d\n",page_number,*flash_ptr, *(flash_ptr + 1));
+}
 
 void hw_spec_init_buffer(const void* buffer, const uint32_t buffer_size)
 {
@@ -30,6 +34,8 @@ void hw_spec_init_buffer(const void* buffer, const uint32_t buffer_size)
 int 
 read(const uint8_t page_number, uint32_t* o_word1, uint32_t* o_word2)
 {
+    volatile int8_t err = 0;
+
     INPUT_PTR_CHECK(o_word1);
     INPUT_PTR_CHECK(o_word2);
     uint32_t* flash_ptr = (uint32_t*) pMEM(page_number);
@@ -44,12 +50,11 @@ read(const uint8_t page_number, uint32_t* o_word1, uint32_t* o_word2)
 
     return 0;
 
-    int8_t err = 0;
 
 invalid_page_number:
-    set_higher_error_value(&err, -2);
+    SET_HIGHER_ERROR_VALUE(err, -2);
 err_input_ptr:
-    set_higher_error_value(&err, -1);
+    SET_HIGHER_ERROR_VALUE(err, -1);
 
     return err;
 }
@@ -57,7 +62,8 @@ err_input_ptr:
 int 
 write(const uint8_t page_number, const uint32_t word1, const uint32_t word2)
 {
-    
+    volatile int8_t err = 0;
+
     uint32_t* flash_ptr = (uint32_t*) pMEM(page_number);
     memset(flash_ptr, 0, sizeof(uint64_t));
 
@@ -70,10 +76,8 @@ write(const uint8_t page_number, const uint32_t word1, const uint32_t word2)
 
     return 0;
 
-    int8_t err = 0;
-
 invalid_page_number:
-    set_higher_error_value(&err, -1);
+    SET_HIGHER_ERROR_VALUE(err, -1);
 
     return err;
 }
