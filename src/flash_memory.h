@@ -32,8 +32,8 @@ typedef int8_t (*hardware_write)(void* hw_metadata,const FlashDecriptor_t var_id
                                 const void* new_value, const uint32_t size_new_value);
 typedef int8_t (*hardware_read)(void* hw_metadata,const FlashDecriptor_t var_id,
                                 void* o_buffer,const uint32_t size_o_buffer);
-typedef int (*create_id_var) (enum DataTypesInFlash, FlashDecriptor_t out, void** o_hw_metadata);
-typedef int (*free_hw_metadata) (void* metadata);
+typedef int8_t (*create_id_var) (enum DataTypesInFlash, FlashDecriptor_t* out, void** o_hw_metadata);
+typedef int8_t (*free_hw_metadata) (void* metadata);
 
 typedef struct{
     PagePool_t* out_page_pool_ptr;

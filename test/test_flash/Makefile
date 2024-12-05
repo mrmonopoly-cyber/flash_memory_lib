@@ -2,7 +2,14 @@ CC = gcc
 C_FLAGS = -Wall -Wextra
 C_EXFLAGS = 
 
+
 test_flash_src_path := $(or $(TEST_FLASH_ROOT), .)
+
+ifndef $(HARDWARE_SPEC_ROOT)
+HARDWARE_SPEC_ROOT := $(test_flash_src_path)/hardware_spec
+include $(HARDWARE_SPEC_ROOT)/Makefile
+endif
+
 hw_flash.c := $(test_flash_src_path)/hw_flash.c
 all: release
 

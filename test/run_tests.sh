@@ -11,7 +11,7 @@ if [ ! -d ./test_flash -o ! -d ./.dummy ]; then
 fi
 
 cd ./tests/
-for TEST_DIR in $(/bin/ls -d */ ); do
+for TEST_DIR in $(/bin/ls -d */ 2>/dev/null ); do
     echo $TEST_DIR
     cd $TEST_DIR
     echo building

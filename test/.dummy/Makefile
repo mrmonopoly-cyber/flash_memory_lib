@@ -11,7 +11,7 @@ include $(FLASH_MEMORY_ROOT_GENERAL)/Makefile
 endif
 
 ifndef $(TEST_FLASH_ROOT)
-TEST_FLASH_ROOT:= $(TEST_ROOT)/test_flash/
+TEST_FLASH_ROOT:= $(TEST_ROOT)/test_flash
 include $(TEST_FLASH_ROOT)/Makefile
 endif
 

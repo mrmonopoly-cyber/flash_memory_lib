@@ -179,7 +179,7 @@ flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* c
 
     StoredVar* new_var = &pool->vars[pool->next_var];
     void** extra_metadata = &new_var->extra_metadata;
-    if(pool->hw_id_var(args->data_type,new_var->fd, extra_metadata ) < 0){
+    if(pool->hw_id_var(args->data_type,&new_var->fd, extra_metadata ) < 0){
         goto error_assigning_fd_to_var;
     }
     int16_t data_size = get_size_from_data_type(args->data_type);

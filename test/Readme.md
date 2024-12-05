@@ -34,3 +34,12 @@ Run the test:
 If you want to add a new test run the following command:
 ```sh
     ./add_test.sh [name]
+```
+If you want to remove a test run the following command:
+```sh
+    ./rm_test.sh [name]
+```
+If you want to list the available tests run the following command 
+```sh
+    ./list_tests.sh
+```
