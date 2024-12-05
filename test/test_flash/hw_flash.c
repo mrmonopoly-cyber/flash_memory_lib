@@ -13,7 +13,8 @@ static struct{
 }flash_metadata;
 
 //public
-int8_t hardware_init_imp(void){
+int8_t hardware_init_imp(void)
+{
     return 0;
 }
 
@@ -24,12 +25,13 @@ hardware_write_imp(void* hw_metadata __attribute_maybe_unused__,const FlashDecri
     if (!size_new_value) {
         goto new_var_size_too_small;
     }
-
+    
+    const uint8_t* value_buffer = new_value;
     uint32_t word1=0,word2=0;
 
     if (size_new_value > 4) {
-        memcpy(&word1, new_value, 4);
-        memcpy(&word2, new_value + 4, size_new_value - 4);
+        memcpy(&word1, value_buffer, 4);
+        memcpy(&word2, value_buffer + 4, size_new_value - 4);
     }else{
         memcpy(&word1, new_value, size_new_value);
     }
@@ -51,14 +53,15 @@ new_var_size_too_small:
 }
 
 int8_t 
-hardware_read_imp(void* hw_metadata __attribute_maybe_unused__,const FlashDecriptor_t var_id,void* o_buffer,
-        const uint32_t size_o_buffer)
+hardware_read_imp(void* hw_metadata __attribute_maybe_unused__,const FlashDecriptor_t var_id,
+        void* o_buffer, const uint32_t size_o_buffer)
 {
     if (size_o_buffer < 8) {
         goto buffer_size_too_small;
     }
 
-    if(read(var_id, o_buffer, o_buffer + 4) < 0){
+    uint32_t* value_buffer = o_buffer;
+    if(read(var_id, value_buffer , value_buffer + 1) < 0){
         goto hw_imp_error;
     }
 

@@ -20,6 +20,13 @@ static inline void set_higher_error_value(int8_t* curr_err, int8_t new_err){
 }
 
 //public
+
+void hw_spec_init_buffer(const void* buffer, const uint32_t buffer_size)
+{
+    uint32_t data_to_copy = buffer_size < SIZE_FLASH? buffer_size: SIZE_FLASH;
+    memcpy(flash_memory, buffer, data_to_copy);
+}
+
 int 
 read(const uint8_t page_number, uint32_t* o_word1, uint32_t* o_word2)
 {

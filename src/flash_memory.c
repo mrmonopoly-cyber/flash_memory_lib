@@ -165,7 +165,7 @@ flash_memory_init(const InitInputArgs_t*const args)
 
     volatile int8_t err=0;
 error_init_hw:
-    memset(args->out_page_pool_ptr, 0, sizeof(*args->out_page_pool_ptr));
+    memset(args->out_page_pool_ptr, 0, sizeof(struct PagePool));
     SET_HIGHER_ERROR_VALUE(err, -3);
 already_init_pool:
     SET_HIGHER_ERROR_VALUE(err, -2);

@@ -6,7 +6,7 @@
 #define BASE_PAGEPOOL_T_SIZE 40
 #define STORED_VAR_SIZE 24
 #define STACK_PAGEPOOL_T(ptr_name,size, var_attribute_compiler)\
-    char raw_buffer_pagepool_##ptr_name[BASE_PAGEPOOL_T_SIZE + size * STORED_VAR_SIZE] = {0};\
+    char raw_buffer_pagepool_##ptr_name[BASE_PAGEPOOL_T_SIZE + size * STORED_VAR_SIZE] = {};\
     PagePool_t* ptr_name var_attribute_compiler = raw_buffer_pagepool_##ptr_name; 
 
 enum DataTypesInFlash {

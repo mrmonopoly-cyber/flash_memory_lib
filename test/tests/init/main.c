@@ -4,11 +4,12 @@
 #include "./flash_memory/flash_memory.h"
 #include "./test_flash/hw_flash.h"
 #include "./test_score_lib/test_lib.h"
+#include "./hardware_spec/hardware_spec.h"
 
 #define SET_HIGHER_ERROR_VALUE(curr_err,new_err) if (*curr_err < new_err) *curr_err = new_err
-#define MAX_VARS (10)
+const uint8_t MAX_VARS = 10;
 
-static int test_wrong_input_init_hw_init(){
+static int test_wrong_input_init_hw_init(void){
     STACK_PAGEPOOL_T(page_pool, MAX_VARS, __attribute_maybe_unused__);
 
     const InitInputArgs_t init_args = {
@@ -30,7 +31,7 @@ static int test_wrong_input_init_hw_init(){
     }
 }
 
-static int test_wrong_input_init_hw_read(){
+static int test_wrong_input_init_hw_read(void){
     STACK_PAGEPOOL_T(page_pool, MAX_VARS, __attribute_maybe_unused__);
 
     const InitInputArgs_t init_args = {
@@ -51,7 +52,7 @@ static int test_wrong_input_init_hw_read(){
         return -1;
     }
 }
-static int test_wrong_input_init_hw_write(){
+static int test_wrong_input_init_hw_write(void){
     STACK_PAGEPOOL_T(page_pool, MAX_VARS, __attribute_maybe_unused__);
 
     const InitInputArgs_t init_args = {
@@ -73,7 +74,7 @@ static int test_wrong_input_init_hw_write(){
     }
 }
 
-static int test_wrong_input_init_hw_create_id(){
+static int test_wrong_input_init_hw_create_id(void){
     STACK_PAGEPOOL_T(page_pool, MAX_VARS, __attribute_maybe_unused__);
 
     const InitInputArgs_t init_args = {
@@ -95,7 +96,7 @@ static int test_wrong_input_init_hw_create_id(){
     }
 }
 
-static int test_wrong_input_init_hw_free_metadata(){
+static int test_wrong_input_init_hw_free_metadata(void){
     STACK_PAGEPOOL_T(page_pool, MAX_VARS, __attribute_maybe_unused__);
 
     const InitInputArgs_t init_args = {
@@ -117,7 +118,7 @@ static int test_wrong_input_init_hw_free_metadata(){
     }
 }
 
-static int test_wrong_input_init_out_page_pool_ptr(){
+static int test_wrong_input_init_out_page_pool_ptr(void){
     STACK_PAGEPOOL_T(page_pool, MAX_VARS, __attribute_maybe_unused__);
 
     const InitInputArgs_t init_args = {
@@ -139,7 +140,7 @@ static int test_wrong_input_init_out_page_pool_ptr(){
     }
 }
 
-static int test_wrong_input_init_max_number_of_vars(){
+static int test_wrong_input_init_max_number_of_vars(void){
     STACK_PAGEPOOL_T(page_pool, MAX_VARS, __attribute_maybe_unused__);
 
     const InitInputArgs_t init_args = {
@@ -161,7 +162,7 @@ static int test_wrong_input_init_max_number_of_vars(){
     }
 }
 
-static int test_correct_init_with_double_init(){
+static int test_correct_init_with_double_init(void){
     STACK_PAGEPOOL_T(page_pool, MAX_VARS, __attribute_maybe_unused__);
 
     const InitInputArgs_t init_args = {
