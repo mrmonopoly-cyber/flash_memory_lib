@@ -22,15 +22,13 @@ for TEST_DIR in $(/bin/ls -d */ 2>/dev/null ); do
     cd $TEST_DIR
     echo -e ${YELLOW}building in DEBUG mode $ENDCOLOR
     make debug 1>/dev/null
-    echo -e ${GREEN}running in DEBUG mode $GREEN
+    echo -e ${GREEN}running in DEBUG mode $ENDCOLOR
     ./main
-    echo cleaning
-    make clean
+    make clean 1>/dev/null
     echo -e ${YELLOW}building in RELEASE mode $ENDCOLOR
     make 1>/dev/null
-    echo -e ${GREEN}running in RELEASE mode $GREEN
+    echo -e ${GREEN}running in RELEASE mode $ENDCOLOR
     ./main
-    echo -e ${MAGENTA}done $(echo $TEST_DIR | cut -d'/' -f1) $ENDCOLOR
     cd ..
 done
 

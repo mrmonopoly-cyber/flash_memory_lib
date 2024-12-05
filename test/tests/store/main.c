@@ -3,8 +3,6 @@
 #include "./flash_memory/flash_memory.h"
 #include "./test_flash/hw_flash.h"
 #include "./test_score_lib/test_lib.h"
-#include "./hardware_spec/hardware_spec.h"
-
 
 static int init_pool(PagePool_t* pool, uint8_t pool_size){
     const InitInputArgs_t init_args ={

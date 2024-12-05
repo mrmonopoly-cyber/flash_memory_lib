@@ -3,7 +3,6 @@
 #include "./flash_memory/flash_memory.h"
 #include "./test_flash/hw_flash.h"
 #include "./test_score_lib/test_lib.h"
-#include "./hardware_spec/hardware_spec.h"
 
 
 static int init_pool(PagePool_t* pool,uint8_t pool_size){
@@ -56,6 +55,8 @@ int main(int argc __attribute_maybe_unused__, char *argv[] __attribute_maybe_unu
         FAILED("failed storing a var");
         return -2;
     }
+
+    print_SCORE();
 
     return EXIT_SUCCESS;
 }
