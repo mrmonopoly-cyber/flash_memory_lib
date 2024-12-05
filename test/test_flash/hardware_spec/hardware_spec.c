@@ -15,7 +15,6 @@ static uint8_t flash_memory[SIZE_FLASH];
 #define GET_MEMORY_ADDRESS(page)    (IFXFLASH_DFLASH_START + ((page) * IFXFLASH_DFLASH_PAGE_LENGTH))
 #define pMEM(page)                  (uint8_t *)(GET_MEMORY_ADDRESS(page))
 
-#define SET_HIGHER_ERROR_VALUE(old,new) if (new < old ) old = new;
 
 //public
 
@@ -52,9 +51,9 @@ read(const uint8_t page_number, uint32_t* o_word1, uint32_t* o_word2)
 
 
 invalid_page_number:
-    SET_HIGHER_ERROR_VALUE(err, -2);
+    err--;
 err_input_ptr:
-    SET_HIGHER_ERROR_VALUE(err, -1);
+    err--;
 
     return err;
 }
@@ -77,7 +76,7 @@ write(const uint8_t page_number, const uint32_t word1, const uint32_t word2)
     return 0;
 
 invalid_page_number:
-    SET_HIGHER_ERROR_VALUE(err, -1);
+    err--;
 
     return err;
 }

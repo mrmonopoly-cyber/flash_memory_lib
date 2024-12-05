@@ -47,8 +47,6 @@ uint8_t assert_size_stored_var_1[(sizeof(struct StoredVar) == STORED_VAR_SIZE) ?
     }\
     goto variable_not_found;
 
-#define SET_HIGHER_ERROR_VALUE(old,new) if (new < old ) old = new;
-
 static int input_check_init_input(const InitInputArgs_t* args)
 {
     INPUT_PTR_CHECK(args);
@@ -166,11 +164,11 @@ flash_memory_init(const InitInputArgs_t*const args)
 
 error_init_hw:
     memset(args->out_page_pool_ptr, 0, sizeof(*pool));
-    SET_HIGHER_ERROR_VALUE(err, -3);
+    err--;
 already_init_pool:
-    SET_HIGHER_ERROR_VALUE(err, -2);
+    err--;
 err_input_ptr:
-    SET_HIGHER_ERROR_VALUE(err, -1);
+    err--;
 
     return err;
 }
@@ -210,17 +208,16 @@ error_hw_writing_bytes:
         pool->free_metadata(new_var->extra_metadata);
         new_var->extra_metadata = NULL;
     }
-    err =0;
-    SET_HIGHER_ERROR_VALUE(err, -5);
+
 error_computing_size_of_var:
-    SET_HIGHER_ERROR_VALUE(err, -4);
+    err--;
 error_assigning_fd_to_var:
     new_var->fd=0;
-    SET_HIGHER_ERROR_VALUE(err, -3);
+    err--;
 pool_not_initialized:
-    SET_HIGHER_ERROR_VALUE(err, -2);
+    err--;
 err_input_ptr:
-    SET_HIGHER_ERROR_VALUE(err, -1);
+    err--;
 
     return err;
 }
@@ -247,15 +244,15 @@ flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs
     });
 
 variable_not_found:
-    SET_HIGHER_ERROR_VALUE(err, -5);
+    err--;
 hw_read_error:
-    SET_HIGHER_ERROR_VALUE(err, -4);
+    err--;
 out_buffer_too_small:
-    SET_HIGHER_ERROR_VALUE(err, -3);
+    err--;
 pool_not_initialized:
-    SET_HIGHER_ERROR_VALUE(err, -2);
+    err--;
 err_input_ptr:
-    SET_HIGHER_ERROR_VALUE(err, -1);
+    err--;
 
     return err;
 }
@@ -283,15 +280,15 @@ flash_memory_update_value(PagePool_t* const self,const UpdateValueInputArgs_t* c
 
 
 variable_not_found:
-    SET_HIGHER_ERROR_VALUE(err, -5);
+    err--;
 hw_write_error:
-    SET_HIGHER_ERROR_VALUE(err, -4);
+    err--;
 new_var_too_big:
-    SET_HIGHER_ERROR_VALUE(err, -3);
+    err--;
 pool_not_initialized:
-    SET_HIGHER_ERROR_VALUE(err, -2);
+    err--;
 err_input_ptr:
-    SET_HIGHER_ERROR_VALUE(err, -1);
+    err--;
 
     return err;
 }
@@ -314,11 +311,11 @@ flash_memory_get_var_metadata(const PagePool_t* const self,MetadataStoreVariable
     });
 
 variable_not_found:
-    SET_HIGHER_ERROR_VALUE(err, -3);
+    err--;
 err_input_ptr:
-    SET_HIGHER_ERROR_VALUE(err, -2);
+    err--;
 pool_not_initialized:
-    SET_HIGHER_ERROR_VALUE(err, -1);
+    err--;
 
     return err;
 }
