@@ -21,9 +21,9 @@ compile: test_lib.o
 test_lib.o: $(test_lib.c) 
 	$(CC) $(C_FLAGS) $(C_EXFLAGS) $(DEBUG) $(test_lib.c) -c
 
-test_clean:
+test_score_clean:
 ifeq ($(wildcard test_lib.o), test_lib.o)
 	rm test_lib.o
 endif
 
-clean: test_clean
+clean: test_score_clean

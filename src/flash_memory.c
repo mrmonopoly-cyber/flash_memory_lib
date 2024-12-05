@@ -1,5 +1,6 @@
 #include "./flash_memory.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 //private
@@ -32,26 +33,32 @@ uint8_t assert_size_stored_var_1[(sizeof(struct StoredVar) == STORED_VAR_SIZE) ?
     const struct PagePool* ptr_var_name = ptr_t_page_pool;
 
 #define INPUT_PTR_CHECK(ptr) if (!ptr) {goto err_input_ptr;}
-#define THROW_ERROR_IF_HAPPEN(err_out,expr) if (err_out < 0) {expr;}
+#define THROW_ERROR_IF_HAPPEN(err_exp,expr) if (err_exp) {expr;}
 
 #define INIT_CHECK(pool,exp) if (pool->hw_read) {exp}
-#define SET_HIGHER_ERROR_VALUE(curr_err,new_err) if (*curr_err < new_err) *curr_err = new_err
 
 #define FIND_VAR_AND_EXECUTE_EXPR_ON_IT(pool,var_id,expr)\
     const StoredVar* var = NULL;\
     for (uint8_t i=0; i<pool->next_var; i++) {\
         var = &pool->vars[i];\
         if (var->fd == var_id) {\
-            expr;\
+            expr\
         }\
     }\
     goto variable_not_found;
 
+#define SET_HIGHER_ERROR_VALUE(old,new) if (new < old ) old = new;
 
 static int input_check_init_input(const InitInputArgs_t* args)
 {
     INPUT_PTR_CHECK(args);
     INPUT_PTR_CHECK(args->out_page_pool_ptr);
+    INPUT_PTR_CHECK(args->hw_init);
+    INPUT_PTR_CHECK(args->hw_read);
+    INPUT_PTR_CHECK(args->hw_write);
+    INPUT_PTR_CHECK(args->hw_id_var);
+    INPUT_PTR_CHECK(args->free_metadata);
+    THROW_ERROR_IF_HAPPEN(!args->max_number_of_vars, {goto err_input_ptr;})
 
     return 0;
 
@@ -136,7 +143,7 @@ error_invalid_size:
 int8_t
 flash_memory_init(const InitInputArgs_t*const args)
 {
-    THROW_ERROR_IF_HAPPEN(input_check_init_input(args), {goto err_input_ptr;});
+    THROW_ERROR_IF_HAPPEN(input_check_init_input(args) < 0, {goto err_input_ptr;});
     PAGEPOOL_T_INTO_PAGEPOOL(pool, args->out_page_pool_ptr);
     INIT_CHECK(pool, {goto already_init_pool;});
 
@@ -146,6 +153,7 @@ flash_memory_init(const InitInputArgs_t*const args)
     pool->hw_write = args->hw_write;
     pool->hw_id_var = args->hw_id_var;
     pool->free_metadata = args->free_metadata;
+    pool->max_number_of_vars = args->max_number_of_vars;
     memset(pool->vars, 0, var_array_size);
 
     if(args->hw_init() < 0){
@@ -155,14 +163,14 @@ flash_memory_init(const InitInputArgs_t*const args)
     return 0;
 
 
-    int8_t err=0;
+    volatile int8_t err=0;
 error_init_hw:
     memset(args->out_page_pool_ptr, 0, sizeof(*args->out_page_pool_ptr));
-    SET_HIGHER_ERROR_VALUE(&err, -3);
+    SET_HIGHER_ERROR_VALUE(err, -3);
 already_init_pool:
-    SET_HIGHER_ERROR_VALUE(&err, -2);
+    SET_HIGHER_ERROR_VALUE(err, -2);
 err_input_ptr:
-    SET_HIGHER_ERROR_VALUE(&err, -1);
+    SET_HIGHER_ERROR_VALUE(err, -1);
 
     return err;
 }
@@ -170,7 +178,7 @@ err_input_ptr:
 int8_t
 flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* const args)
 {
-    THROW_ERROR_IF_HAPPEN(input_check_store_new_value_input(args), {goto err_input_ptr;});
+    THROW_ERROR_IF_HAPPEN(input_check_store_new_value_input(args) < 0, {goto err_input_ptr;});
     PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
     INIT_CHECK(pool, {goto pool_not_initialized;});
 
@@ -193,22 +201,22 @@ flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* c
     return 0;
 
 
-    int8_t err = 0;
+    volatile int8_t err = 0;
 error_hw_writing_bytes:
     if (pool->free_metadata){
         pool->free_metadata(new_var->extra_metadata);
         new_var->extra_metadata = NULL;
     }
-    SET_HIGHER_ERROR_VALUE(&err, -4);
+    SET_HIGHER_ERROR_VALUE(err, -5);
 error_computing_size_of_var:
-    SET_HIGHER_ERROR_VALUE(&err, -3);
+    SET_HIGHER_ERROR_VALUE(err, -4);
 error_assigning_fd_to_var:
     new_var->fd=0;
-    SET_HIGHER_ERROR_VALUE(&err, -3);
+    SET_HIGHER_ERROR_VALUE(err, -3);
 pool_not_initialized:
-    SET_HIGHER_ERROR_VALUE(&err, -2);
+    SET_HIGHER_ERROR_VALUE(err, -2);
 err_input_ptr:
-    SET_HIGHER_ERROR_VALUE(&err, -1);
+    SET_HIGHER_ERROR_VALUE(err, -1);
 
     return err;
 }
@@ -217,7 +225,7 @@ int8_t
 flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs_t* const args)
 {
     INPUT_PTR_CHECK(self);
-    THROW_ERROR_IF_HAPPEN(input_check_fetch_value_input(args), {goto err_input_ptr;})
+    THROW_ERROR_IF_HAPPEN(input_check_fetch_value_input(args) < 0, {goto err_input_ptr;})
     CONST_PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
     INIT_CHECK(pool, {goto pool_not_initialized;});
 
@@ -233,17 +241,18 @@ flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs
         return 0;
     });
 
-    int8_t err=0;
+    volatile int8_t err=0;
 variable_not_found:
-    SET_HIGHER_ERROR_VALUE(&err, -5);
+    err =0;
+    SET_HIGHER_ERROR_VALUE(err, -5);
 hw_read_error:
-    SET_HIGHER_ERROR_VALUE(&err, -4);
+    SET_HIGHER_ERROR_VALUE(err, -4);
 out_buffer_too_small:
-    SET_HIGHER_ERROR_VALUE(&err, -3);
+    SET_HIGHER_ERROR_VALUE(err, -3);
 pool_not_initialized:
-    SET_HIGHER_ERROR_VALUE(&err, -2);
+    SET_HIGHER_ERROR_VALUE(err, -2);
 err_input_ptr:
-    SET_HIGHER_ERROR_VALUE(&err, -1);
+    SET_HIGHER_ERROR_VALUE(err, -1);
 
     return err;
 }
@@ -252,7 +261,7 @@ int8_t
 flash_memory_update_value(PagePool_t* const self,const UpdateValueInputArgs_t* const args)
 {
     INPUT_PTR_CHECK(self);
-    THROW_ERROR_IF_HAPPEN(input_check_update_value_input(args), {goto err_input_ptr;})
+    THROW_ERROR_IF_HAPPEN(input_check_update_value_input(args) < 0, {goto err_input_ptr;})
     PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
     INIT_CHECK(pool, {goto pool_not_initialized;});
 
@@ -260,7 +269,7 @@ flash_memory_update_value(PagePool_t* const self,const UpdateValueInputArgs_t* c
         if (args->size_new_value > get_size_from_data_type(var->data_type)) {
             goto new_var_too_big;
         }
-        if (pool->hw_write(var->extra_metadata,args->var_id,
+        if (pool->hw_write(var->extra_metadata,args->var_id, 
                     args->new_value,args->size_new_value) < 0) {
             goto hw_write_error;
         }
@@ -271,15 +280,16 @@ flash_memory_update_value(PagePool_t* const self,const UpdateValueInputArgs_t* c
 
     int8_t err=0;
 variable_not_found:
-    SET_HIGHER_ERROR_VALUE(&err, -5);
+    err=0;
+    SET_HIGHER_ERROR_VALUE(err, -5);
 hw_write_error:
-    SET_HIGHER_ERROR_VALUE(&err, -4);
+    SET_HIGHER_ERROR_VALUE(err, -4);
 new_var_too_big:
-    SET_HIGHER_ERROR_VALUE(&err, -3);
+    SET_HIGHER_ERROR_VALUE(err, -3);
 pool_not_initialized:
-    SET_HIGHER_ERROR_VALUE(&err, -2);
+    SET_HIGHER_ERROR_VALUE(err, -2);
 err_input_ptr:
-    SET_HIGHER_ERROR_VALUE(&err, -1);
+    SET_HIGHER_ERROR_VALUE(err, -1);
 
     return err;
 }
@@ -288,7 +298,7 @@ int8_t
 flash_memory_get_var_metadata(const PagePool_t* const self,MetadataStoreVariableInFlash_t* args)
 {
     INPUT_PTR_CHECK(self);
-    THROW_ERROR_IF_HAPPEN(input_check_get_var_metadata_input(args), {goto err_input_ptr;});
+    THROW_ERROR_IF_HAPPEN(input_check_get_var_metadata_input(args) < 0, {goto err_input_ptr;});
     CONST_PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
     INIT_CHECK(pool, {goto pool_not_initialized;});
 
@@ -300,13 +310,14 @@ flash_memory_get_var_metadata(const PagePool_t* const self,MetadataStoreVariable
         return 0;
     });
 
-    int8_t err=0;
+    int8_t err;
 variable_not_found:
-    SET_HIGHER_ERROR_VALUE(&err, -3);
+    err=0;
+    SET_HIGHER_ERROR_VALUE(err, -3);
 err_input_ptr:
-    SET_HIGHER_ERROR_VALUE(&err, -2);
+    SET_HIGHER_ERROR_VALUE(err, -2);
 pool_not_initialized:
-    SET_HIGHER_ERROR_VALUE(&err, -1);
+    SET_HIGHER_ERROR_VALUE(err, -1);
 
     return err;
 }
