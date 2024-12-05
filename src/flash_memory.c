@@ -11,7 +11,6 @@ typedef struct StoredVar{
 }StoredVar;
 
 struct PagePool{
-    void* start_address_flash;
     uint8_t next_var;
     uint8_t max_number_of_vars;
     hardware_read hw_read;
@@ -32,10 +31,10 @@ uint8_t assert_size_stored_var_1[(sizeof(struct StoredVar) == STORED_VAR_SIZE) ?
 #define CONST_PAGEPOOL_T_INTO_PAGEPOOL(ptr_var_name, ptr_t_page_pool)\
     const struct PagePool* ptr_var_name = ptr_t_page_pool;
 
-#define INPUT_PTR_CHECK(ptr) if (ptr) {goto err_input_ptr;}
+#define INPUT_PTR_CHECK(ptr) if (!ptr) {goto err_input_ptr;}
 #define THROW_ERROR_IF_HAPPEN(err_out,expr) if (err_out < 0) {expr;}
 
-#define INIT_CHECK(pool,exp) if (!pool->start_address_flash) {exp}
+#define INIT_CHECK(pool,exp) if (pool->hw_read) {exp}
 #define SET_HIGHER_ERROR_VALUE(curr_err,new_err) if (*curr_err < new_err) *curr_err = new_err
 
 #define FIND_VAR_AND_EXECUTE_EXPR_ON_IT(pool,var_id,expr)\
@@ -139,9 +138,7 @@ flash_memory_init(const InitInputArgs_t*const args)
 {
     THROW_ERROR_IF_HAPPEN(input_check_init_input(args), {goto err_input_ptr;});
     PAGEPOOL_T_INTO_PAGEPOOL(pool, args->out_page_pool_ptr);
-    if (pool->start_address_flash) {
-        goto already_init_pool;
-    }
+    INIT_CHECK(pool, {goto already_init_pool;});
 
     uint32_t var_array_size = pool->max_number_of_vars * sizeof(pool->vars[0]);
 

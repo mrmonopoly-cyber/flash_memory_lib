@@ -22,4 +22,7 @@ create_id_var_imp (enum DataTypesInFlash, FlashDecriptor_t* out,
 int8_t 
 free_hw_metadata_imp (void* metadata __attribute_maybe_unused__);
 
+int8_t 
+create_id_var_imp(enum DataTypesInFlash data_type, FlashDecriptor_t* out, void** o_hw_metadata);
+
 #endif // !__HW_FLASH__
