@@ -321,3 +321,17 @@ pool_not_initialized:
 
     return err;
 }
+
+#ifdef DEBUG
+uint8_t integrity_check_PagePool_t(const PagePool_t* self)
+{
+    CONST_PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
+    return 
+        pool->hw_read &&
+        pool->hw_write && 
+        pool->hw_id_var && 
+        pool->free_metadata &&
+        pool->max_number_of_vars;
+
+}
+#endif // DEBUG

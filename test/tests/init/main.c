@@ -174,10 +174,16 @@ static int test_correct_init_with_double_init(){
         .max_number_of_vars = MAX_VARS,
     };
     int err_init = flash_memory_init(&init_args);
-    if (err_init < 0) {
+    if ((err_init < 0) ) {
         FAILED("init failed");
         return -1;
     }else{
+#ifdef DEBUG 
+        if(!integrity_check_PagePool_t(page_pool)){
+            FAILED("init passed but consistency failed");
+            return -2;
+        }
+#endif /* ifndef DEBUG */
         PASSED("init ok");
     }
 

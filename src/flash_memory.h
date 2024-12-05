@@ -85,4 +85,8 @@ flash_memory_update_value(PagePool_t* const self,const UpdateValueInputArgs_t* c
 int8_t
 flash_memory_get_var_metadata(const PagePool_t* const self,MetadataStoreVariableInFlash_t* args);
 
+#ifdef DEBUG
+uint8_t integrity_check_PagePool_t(const PagePool_t* self);
+#endif // DEBUG
+
 #endif // !__FLASH_MEMORY__
