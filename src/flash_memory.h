@@ -29,8 +29,10 @@
  * @param size Number of variables to allocate in the PagePool_t.
  * @param var_attribute_compiler Additional compiler-specific attributes.
  */
+#include <string.h>
 #define STACK_PAGEPOOL_T(ptr_name, size, var_attribute_compiler) \
-    char raw_buffer_pagepool_##ptr_name[BASE_PAGEPOOL_T_SIZE + size * STORED_VAR_SIZE] = {}; \
+    char raw_buffer_pagepool_##ptr_name[BASE_PAGEPOOL_T_SIZE + size * STORED_VAR_SIZE]; \
+    memset(raw_buffer_pagepool_##ptr_name,0,sizeof(raw_buffer_pagepool_##ptr_name));\
     PagePool_t* ptr_name var_attribute_compiler = raw_buffer_pagepool_##ptr_name;
 
 /**
