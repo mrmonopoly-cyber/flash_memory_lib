@@ -102,9 +102,6 @@ The library uses function pointers to interface with hardware, making it adaptab
   typedef int8_t (*free_hw_metadata)(void* metadata);
   ```
 
-## Testing
-In the repo the are also a few test. If you want to see check [test](./test/Readme.md)
-
 ## License
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 
