@@ -4,7 +4,6 @@
 #include "./flash_memory/flash_memory.h"
 #include "./test_flash/hw_flash.h"
 #include "./test_score_lib/test_lib.h"
-#include "./hardware_spec/hardware_spec.h"
 
 #define SET_HIGHER_ERROR_VALUE(curr_err,new_err) if (*curr_err < new_err) *curr_err = new_err
 const uint8_t MAX_VARS = 10;
