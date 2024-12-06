@@ -1,5 +1,5 @@
 CC = gcc
-C_FLAGS = -Wall -Wextra
+C_FLAGS = -Wall -Wextra -std=c11
 C_EXFLAGS = 
 
 TEST_ROOT = .

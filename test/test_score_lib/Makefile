@@ -1,5 +1,5 @@
 CC = gcc
-C_FLAGS = -Wall -Wextra
+C_FLAGS = -Wall -Wextra -std=c11
 C_EXFLAGS = 
 
 flash_memory_src_path := $(or $(TEST_SCORE_LIB_ROOT), .)

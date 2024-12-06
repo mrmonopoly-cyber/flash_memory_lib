@@ -20,7 +20,7 @@
 /** @def STORED_VAR_SIZE
  *  @brief Size of a single stored variable in bytes.
  */
-#define STORED_VAR_SIZE 24
+#define STORED_VAR_SIZE 32
 
 /**
  * @brief Macro to initialize a stack-allocated PagePool_t buffer.

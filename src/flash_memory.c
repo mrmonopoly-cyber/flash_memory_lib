@@ -1,10 +1,15 @@
 #include "./flash_memory.h"
+
+#if __STDC_VERSION__ >= 201112L | defined (__TASKING__)
+#include <stdatomic.h>
+#endif
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
 //private
 typedef struct StoredVar{
+    _Atomic uint8_t lock;
     enum DataTypesInFlash data_type;
     FlashDecriptor_t fd;
     char* var_description;
@@ -12,7 +17,11 @@ typedef struct StoredVar{
 }StoredVar;
 
 struct PagePool{
+#if __STDC_VERSION__  >= 201112L
+    atomic_uchar next_var;
+#else
     uint8_t next_var;
+#endif
     uint8_t max_number_of_vars;
     hardware_read hw_read;
     hardware_write hw_write;
@@ -22,8 +31,10 @@ struct PagePool{
 };
 
 #ifdef DEBUG
-uint8_t assert_size_pagepool[(sizeof(struct PagePool) == BASE_PAGEPOOL_T_SIZE ) ? 0 : -1] = {};
-uint8_t assert_size_stored_var_1[(sizeof(struct StoredVar) == STORED_VAR_SIZE) ? 0 : -1] = {};
+uint8_t g = sizeof(StoredVar);
+uint8_t g1 = sizeof(struct PagePool);
+uint8_t assert_size_pagepool[(sizeof(struct PagePool) == BASE_PAGEPOOL_T_SIZE ) ? 1 : -1] = {};
+uint8_t assert_size_stored_var_1[(sizeof(struct StoredVar) == STORED_VAR_SIZE) ? 1 : -1] = {};
 #endif
 
 #define CHECK_INIT(page_pool,ret_err) if (!page_pool.start_address_flash) {return ret_err;}
@@ -37,9 +48,18 @@ uint8_t assert_size_stored_var_1[(sizeof(struct StoredVar) == STORED_VAR_SIZE) ?
 
 #define INIT_CHECK(pool,exp) if (!pool->hw_read) {exp}
 
+#if __STDC_VERSION__ >= 201112L
+#define EXTRACT_NEXT_VAR(pool) atomic_load(&pool->next_var)
+#define INCREASE_NEXT_VAR(pool) atomic_fetch_add(&pool->next_var, 1)
+#else
+#define EXTRACT_NEXT_VAR(pool) pool->next_var
+#define INCREASE_NEXT_VAR(pool) pool->next_var++
+#endif /* if __STDC__ == 201112L */
+
+
 #define FIND_VAR_AND_EXECUTE_EXPR_ON_IT(pool,var_id,expr)\
     const StoredVar* var = NULL;\
-    for (uint8_t i=0; i<pool->next_var; i++) {\
+    for (uint8_t i=0; i<EXTRACT_NEXT_VAR(pool); i++) {\
         var = &pool->vars[i];\
         if (var->fd == var_id) {\
             expr;\
@@ -182,7 +202,7 @@ flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* c
     PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
     INIT_CHECK(pool, {goto pool_not_initialized;});
 
-    StoredVar* new_var = &pool->vars[pool->next_var];
+    StoredVar* new_var = &pool->vars[EXTRACT_NEXT_VAR(pool)];
     void** extra_metadata = &new_var->extra_metadata;
     *o_fd = 0;
     if(pool->hw_id_var(args->data_type,&new_var->fd, extra_metadata ) < 0){
@@ -199,7 +219,7 @@ flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* c
     new_var->var_description = args->var_description;
     new_var->data_type = args->data_type;
     *o_fd = new_var->fd;
-    pool->next_var++;
+    INCREASE_NEXT_VAR(pool);
 
     return 0;
 
