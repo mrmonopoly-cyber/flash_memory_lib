@@ -79,9 +79,30 @@ static int invalid_store_wrong_data_type(PagePool_t* pool, FlashDecriptor_t* o_v
 
 }
 
+static int invalid_store_pool_full(PagePool_t* pool){
+    FlashDecriptor_t o_var_id = 0;
+    const char a = 2;
+    const StoreNewValueInputArgs_t args = {
+        .data_type = UINT8,
+        .var_description = "an invalid store",
+        .value = &a,
+    };
+    int8_t err = flash_memory_store_new_value(pool, &args, &o_var_id);
+    if(err < 0){
+        PASSED("invalid store blocked with value: ");
+        fprintf(stderr, "%d\n", err);
+    }else{
+        FAILED("stored var when poll is full variable stored");
+        return -1;
+    }
+
+    return 0;
+
+}
+
 int main(int argc __attribute_maybe_unused__, char *argv[] __attribute_maybe_unused__)
 {
-    const uint8_t pool_size = 10;
+    const uint8_t pool_size = 3;
     STACK_PAGEPOOL_T(pool, pool_size, );
     if(init_pool(pool, pool_size)){
         FAILED("failed init the pool");
@@ -125,6 +146,12 @@ int main(int argc __attribute_maybe_unused__, char *argv[] __attribute_maybe_unu
         FAILED("invalid store wrong data type not blocked");
     }else{
         PASSED("invalid store wrong data type blocked");
+    }
+
+    if (invalid_store_pool_full(pool)) {
+        FAILED("invalid store full pool not blocked");
+    }else{
+        PASSED("invalid store full pool blocked");
     }
 
     print_SCORE();
