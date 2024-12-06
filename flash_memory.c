@@ -123,9 +123,6 @@ err_input_ptr:
 
 static int input_check_get_var_metadata_input(const MetadataStoreVariableInFlash_t* args){
     INPUT_PTR_CHECK(args);
-    INPUT_PTR_CHECK(args->var_description);
-    if (args->data_type > DOUBLE) goto err_input_ptr;
-
     return 0;
 
 err_input_ptr:
@@ -320,7 +317,7 @@ err_input_ptr:
 }
 
 int8_t
-flash_memory_get_var_metadata(const PagePool_t* const self,MetadataStoreVariableInFlash_t* args)
+flash_memory_get_var_metadata(const PagePool_t* const self, const FlashDecriptor_t var_id, MetadataStoreVariableInFlash_t* args)
 {
     int8_t err =0;
     INPUT_PTR_CHECK(self);
@@ -328,11 +325,9 @@ flash_memory_get_var_metadata(const PagePool_t* const self,MetadataStoreVariable
     CONST_PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
     INIT_CHECK(pool, {goto pool_not_initialized;});
 
-    FIND_VAR_AND_EXECUTE_EXPR_ON_IT(pool,args->var_id,{
+    FIND_VAR_AND_EXECUTE_EXPR_ON_IT(pool,var_id,{
         args->data_type = var->data_type;
-        args->var_id = var->fd;
         args->var_description = var->var_description;
-
         return 0;
     });
 
