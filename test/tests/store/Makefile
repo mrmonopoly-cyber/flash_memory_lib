@@ -5,9 +5,9 @@ C_EXFLAGS =
 TEST_ROOT = .
 OUT_NAME = main
 
-ifndef $(FLASH_MEMORY_ROOT_GENERAL)
-FLASH_MEMORY_ROOT_GENERAL:= $(TEST_ROOT)/project_root
-include $(FLASH_MEMORY_ROOT_GENERAL)/Makefile
+ifndef $(FLASH_MEMORY_ROOT)
+FLASH_MEMORY_ROOT:= $(TEST_ROOT)/project_root
+include $(FLASH_MEMORY_ROOT)/Makefile
 endif
 
 ifndef $(TEST_FLASH_ROOT)

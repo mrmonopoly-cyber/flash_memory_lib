@@ -2,7 +2,7 @@
 #define __HW_FLASH__
 
 #include <stdint.h>
-#include "./project_root/src/flash_memory.h"
+#include "./project_root/flash_memory.h"
 
 void 
 print_status_flash(void);
