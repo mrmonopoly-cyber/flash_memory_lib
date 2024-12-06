@@ -2,7 +2,6 @@
 
 ## Requirements
 
-- [Unity](https://github.com/ThrowTheSwitch/Unity)
 - [Make](https://www.gnu.org/software/make/)
 - [GCC](https://gcc.gnu.org/)
 
