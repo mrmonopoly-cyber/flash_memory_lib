@@ -124,7 +124,7 @@ int main(int argc __attribute_maybe_unused__, char *argv[] __attribute_maybe_unu
     }
 
     const UpdateValueInputArgs_t update_invalid_zero_size_new_value = {
-        .var_id = fd_b + 12,
+        .var_id = fd_b,
         .new_value = &bb_new,
         .size_new_value = 0,
     };
