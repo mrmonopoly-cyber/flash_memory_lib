@@ -1,0 +1,102 @@
+<h1 id="flash-memory-management-library">Flash Memory Management
+Library</h1>
+<p>This library provides a modular and extensible interface for managing
+variables in flash memory. Designed for embedded systems, it facilitates
+initialization, storage, retrieval, updating, and metadata management
+for variables stored in flash memory.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li>Supports various data types, including integers, floating-point
+numbers, and more.</li>
+<li>Abstracted hardware interface using function pointers for
+flexibility.</li>
+<li>Lightweight and optimized for embedded environments.</li>
+<li>Includes optional debugging tools for integrity checks.</li>
+</ul>
+<h2 id="getting-started">Getting Started</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>A C compiler (e.g., <code>gcc</code>, <code>clang</code>).</li>
+<li>Make utility (for using the provided Makefile).</li>
+</ul>
+<h3 id="building-the-library">Building the Library</h3>
+<ol type="1">
+<li><p>Clone the repository:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/mrmonopoly-cyber/flash_memory_lib.git</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> flash_memory_lib</span></code></pre></div></li>
+<li><p>Build the library using the Makefile:</p>
+<ul>
+<li><p>Debug mode:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> debug</span></code></pre></div></li>
+<li><p>Release mode:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> release</span></code></pre></div></li>
+</ul></li>
+</ol>
+<h3 id="integration">Integration</h3>
+<p>Include the <code>flash_memory.h</code> header in your project and
+link the compiled library. Implement the hardware abstraction functions
+(e.g., <code>hardware_read</code>, <code>hardware_write</code>) specific
+to your hardware.</p>
+<h2 id="api-overview">API Overview</h2>
+<h3 id="core-functions">Core Functions</h3>
+<ul>
+<li><p><strong>Initialization</strong>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int8_t</span> flash_memory_init<span class="op">(</span><span class="dt">const</span> InitInputArgs_t<span class="op">*</span> <span class="dt">const</span> args<span class="op">);</span></span></code></pre></div>
+<p>Initializes the flash memory system.</p></li>
+<li><p><strong>Storing a New Value</strong>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int8_t</span> flash_memory_store_new_value<span class="op">(</span>PagePool_t<span class="op">*</span> self<span class="op">,</span> <span class="dt">const</span> StoreNewValueInputArgs_t<span class="op">*</span> <span class="dt">const</span> args<span class="op">,</span> FlashDecriptor_t<span class="op">*</span> o_fd<span class="op">);</span></span></code></pre></div>
+<p>Stores a new variable in flash memory and provides a
+descriptor.</p></li>
+<li><p><strong>Fetching a Value</strong>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int8_t</span> flash_memory_fetch_value<span class="op">(</span><span class="dt">const</span> PagePool_t<span class="op">*</span> <span class="dt">const</span> self<span class="op">,</span> <span class="dt">const</span> FetchValueInputArgs_t<span class="op">*</span> <span class="dt">const</span> args<span class="op">);</span></span></code></pre></div>
+<p>Retrieves a stored variable by its descriptor.</p></li>
+<li><p><strong>Updating a Value</strong>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int8_t</span> flash_memory_update_value<span class="op">(</span>PagePool_t<span class="op">*</span> <span class="dt">const</span> self<span class="op">,</span> <span class="dt">const</span> UpdateValueInputArgs_t<span class="op">*</span> <span class="dt">const</span> args<span class="op">);</span></span></code></pre></div>
+<p>Updates an existing variable in flash memory.</p></li>
+<li><p><strong>Retrieving Metadata</strong>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int8_t</span> flash_memory_get_var_metadata<span class="op">(</span><span class="dt">const</span> PagePool_t<span class="op">*</span> <span class="dt">const</span> self<span class="op">,</span> <span class="dt">const</span> FlashDecriptor_t var_id<span class="op">,</span> MetadataStoreVariableInFlash_t<span class="op">*</span> out<span class="op">);</span></span></code></pre></div>
+<p>Gets metadata for a stored variable.</p></li>
+</ul>
+<h3 id="debugging-optional">Debugging (Optional)</h3>
+<ul>
+<li><p><strong>Integrity Check</strong>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">uint8_t</span> integrity_check_PagePool_t<span class="op">(</span><span class="dt">const</span> PagePool_t<span class="op">*</span> self<span class="op">);</span></span></code></pre></div>
+<p>Ensures the integrity of the <code>PagePool_t</code> instance
+(available in debug builds).</p></li>
+</ul>
+<h2 id="hardware-abstraction">Hardware Abstraction</h2>
+<p>The library uses function pointers to interface with hardware, making
+it adaptable to different platforms. You need to implement the
+following:</p>
+<ul>
+<li><p><strong>Hardware Initialization</strong>:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="dt">int8_t</span> <span class="op">(*</span>hardware_init<span class="op">)(</span><span class="dt">void</span><span class="op">);</span></span></code></pre></div></li>
+<li><p><strong>Read from Flash</strong>:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="dt">int8_t</span> <span class="op">(*</span>hardware_read<span class="op">)(</span><span class="dt">void</span><span class="op">*</span> hw_metadata<span class="op">,</span> <span class="dt">const</span> FlashDecriptor_t var_id<span class="op">,</span> <span class="dt">void</span><span class="op">*</span> o_buffer<span class="op">,</span> <span class="dt">const</span> <span class="dt">uint32_t</span> size_o_buffer<span class="op">);</span></span></code></pre></div></li>
+<li><p><strong>Write to Flash</strong>:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="dt">int8_t</span> <span class="op">(*</span>hardware_write<span class="op">)(</span><span class="dt">void</span><span class="op">*</span> hw_metadata<span class="op">,</span> <span class="dt">const</span> FlashDecriptor_t var_id<span class="op">,</span> <span class="dt">const</span> <span class="dt">void</span><span class="op">*</span> new_value<span class="op">,</span> <span class="dt">const</span> <span class="dt">uint32_t</span> size_new_value<span class="op">);</span></span></code></pre></div></li>
+<li><p><strong>Create Variable ID</strong>:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="dt">int8_t</span> <span class="op">(*</span>create_id_var<span class="op">)(</span><span class="kw">enum</span> DataTypesInFlash<span class="op">,</span> FlashDecriptor_t<span class="op">*</span> out<span class="op">,</span> <span class="dt">void</span><span class="op">**</span> o_hw_metadata<span class="op">);</span></span></code></pre></div></li>
+<li><p><strong>Free Metadata</strong>:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="dt">int8_t</span> <span class="op">(*</span>free_hw_metadata<span class="op">)(</span><span class="dt">void</span><span class="op">*</span> metadata<span class="op">);</span></span></code></pre></div></li>
+</ul>
+<h2 id="testing">Testing</h2>
+<p>In the repo the are also a few test. If you want to see check <a
+href="./test/Readme.md">test</a></p>
+<h2 id="license">License</h2>
+<p>This project is licensed under the MIT License. See the
+<code>LICENSE</code> file for details.</p>
+<h2 id="contributions">Contributions</h2>
+<p>Contributions, bug reports, and feature requests are welcome! Please
+create an issue or submit a pull request.</p>
+<h2 id="author">Author</h2>
+<p><a href="https://github.com/mrmonopoly-cyber">Mr. Monopoly
+Cyber</a></p>
