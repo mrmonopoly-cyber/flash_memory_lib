@@ -202,7 +202,11 @@ flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* c
     PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
     INIT_CHECK(pool, {goto pool_not_initialized;});
 
-    StoredVar* new_var = &pool->vars[EXTRACT_NEXT_VAR(pool)];
+    uint8_t next_var = EXTRACT_NEXT_VAR(pool);
+    if (next_var >= pool->max_number_of_vars) {
+        goto full_pool;
+    }
+    StoredVar* new_var = &pool->vars[next_var];
     void** extra_metadata = &new_var->extra_metadata;
     *o_fd = 0;
     if(pool->hw_id_var(args->data_type,&new_var->fd, extra_metadata ) < 0){
@@ -233,6 +237,8 @@ error_computing_size_of_var:
     err--;
 error_assigning_fd_to_var:
     new_var->fd=0;
+    err--;
+full_pool:
     err--;
 pool_not_initialized:
     err--;
