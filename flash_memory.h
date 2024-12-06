@@ -169,7 +169,6 @@ typedef struct {
  * @brief Metadata for a stored variable in flash memory.
  */
 typedef struct {
-    FlashDecriptor_t var_id;        /**< ID of the variable. */
     enum DataTypesInFlash data_type; /**< Data type of the variable. */
     const char* var_description;   /**< Description of the variable. */
 } MetadataStoreVariableInFlash_t;
@@ -215,10 +214,11 @@ int8_t flash_memory_update_value(PagePool_t* const self, const UpdateValueInputA
  * @brief Get metadata for a variable stored in flash memory.
  *
  * @param self Pointer to the PagePool_t instance.
+ * @param var_id FlashDescriptor id of the variable.
  * @param args Pointer to the MetadataStoreVariableInFlash_t structure.
  * @return Status code (0 for success, non-zero for failure).
  */
- int8_t flash_memory_get_var_metadata(const PagePool_t* const self, MetadataStoreVariableInFlash_t* args);
+ int8_t flash_memory_get_var_metadata(const PagePool_t* const self, const FlashDecriptor_t var_id, MetadataStoreVariableInFlash_t* out);
 #ifdef DEBUG
  /**
   * @brief Perform an integrity check on the PagePool_t instance.
