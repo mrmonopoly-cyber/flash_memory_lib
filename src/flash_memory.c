@@ -161,7 +161,7 @@ error_invalid_size:
 int8_t
 flash_memory_init(const InitInputArgs_t*const args)
 {
-    volatile int8_t err=0;
+    int8_t err=0;
     THROW_ERROR_IF_HAPPEN(input_check_init_input(args) < 0, {goto err_input_ptr;});
     PAGEPOOL_T_INTO_PAGEPOOL(pool, args->out_page_pool_ptr);
     if (pool->hw_read) goto already_init_pool;
@@ -197,7 +197,7 @@ int8_t
 flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* const args,
         FlashDecriptor_t* o_fd)
 {
-    volatile int8_t err = 0;
+    int8_t err = 0;
     THROW_ERROR_IF_HAPPEN(input_check_store_new_value_input(args) < 0, {goto err_input_ptr;});
     PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
     INIT_CHECK(pool, {goto pool_not_initialized;});
@@ -245,7 +245,7 @@ err_input_ptr:
 int8_t
 flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs_t* const args)
 {
-    volatile int8_t err=0;
+    int8_t err=0;
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_fetch_value_input(args) < 0, {goto err_input_ptr;})
     CONST_PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
@@ -316,7 +316,7 @@ err_input_ptr:
 int8_t
 flash_memory_get_var_metadata(const PagePool_t* const self,MetadataStoreVariableInFlash_t* args)
 {
-    volatile int8_t err =0;
+    int8_t err =0;
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_get_var_metadata_input(args) < 0, {goto err_input_ptr;});
     CONST_PAGEPOOL_T_INTO_PAGEPOOL(pool, self);

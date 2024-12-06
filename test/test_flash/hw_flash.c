@@ -28,7 +28,7 @@ int8_t
 hardware_write_imp(void* hw_metadata __attribute_maybe_unused__,const FlashDecriptor_t var_id, const void* new_value, 
         const uint32_t size_new_value)
 {
-    volatile int8_t err = 0;
+    int8_t err = 0;
     if (!size_new_value) {
         goto new_var_size_too_small;
     }
@@ -62,7 +62,7 @@ int8_t
 hardware_read_imp(void* hw_metadata __attribute_maybe_unused__,const FlashDecriptor_t var_id,
         void* o_buffer, const uint32_t size_o_buffer)
 {
-    volatile int8_t err = 0;
+    int8_t err = 0;
     if (size_o_buffer < 8) {
         goto buffer_size_too_small;
     }

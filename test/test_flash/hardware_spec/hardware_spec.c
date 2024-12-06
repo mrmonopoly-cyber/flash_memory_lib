@@ -33,7 +33,7 @@ void hw_spec_init_buffer(const void* buffer, const uint32_t buffer_size)
 int 
 read(const uint8_t page_number, uint32_t* o_word1, uint32_t* o_word2)
 {
-    volatile int8_t err = 0;
+    int8_t err = 0;
 
     INPUT_PTR_CHECK(o_word1);
     INPUT_PTR_CHECK(o_word2);
@@ -61,7 +61,7 @@ err_input_ptr:
 int 
 write(const uint8_t page_number, const uint32_t word1, const uint32_t word2)
 {
-    volatile int8_t err = 0;
+    int8_t err = 0;
 
     uint32_t* flash_ptr = (uint32_t*) pMEM(page_number);
     memset(flash_ptr, 0, sizeof(uint64_t));
