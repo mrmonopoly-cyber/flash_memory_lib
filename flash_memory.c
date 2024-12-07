@@ -25,8 +25,8 @@ struct PagePool{
 #if __STDC_VERSION__  >= 201112L | defined (__TASKING__)
     atomic_uchar next_var;
 #else
-    uint8_t next_var_lock;
-    uint8_t next_var;
+    uint16_t next_var_lock;
+    uint16_t next_var;
 #endif
     uint8_t max_number_of_vars;
     hardware_read hw_read;
@@ -64,10 +64,10 @@ uint8_t assert_size_stored_var_1[(sizeof(StoredVar) == STORED_VAR_SIZE) ? 1 : -1
 #define INCREASE_NEXT_VAR(pool) atomic_fetch_add(&pool->next_var, 1)
 #define WORK_UN_STORED_VAR(new_var,exp)\
     /*wait for lock to be release and then lock*/\
-    while (atomic_flag_test_and_set(new_var->lock)) {};\
+    while (atomic_flag_test_and_set(&new_var->lock)) {};\
     exp;\
     /*unlock*/\
-    atomic_flag_clear(new_var->lock);
+    atomic_flag_clear(&new_var->lock);
 #else 
 #define EXTRACT_NEXT_VAR(pool,out_var) \
     while(pool->next_var_lock) {}\
@@ -80,8 +80,8 @@ while(pool->next_var_lock) {}\
     pool->next_var++;\
     pool->next_var_lock=0;
 #define WORK_UN_STORED_VAR(new_var,exp) \
-        while (new_var->lock)) {};\
-        new_var->lock=1;\ 87
+        while (new_var->lock){}\
+        new_var->lock=1;\
         exp;\
         new_var->lock=0;
 #endif /* if __STDC__ == 201112L | defined (__TASKING__) */
@@ -258,9 +258,7 @@ flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* c
     if (data_size < 0) {
         goto error_computing_size_of_var;
     }
-    WORK_UN_STORED_VAR(&new_var,{
-        if(pool->hw_write(new_var->extra_metadata,new_var->fd,args->value, data_size) < 0){
-            goto error_hw_writing_bytes;
+    WORK_UN_STORED_VAR(new_var,{ if(pool->hw_write(new_var->extra_metadata,new_var->fd,args->value, data_size) < 0){ goto error_hw_writing_bytes;
         }
         new_var->var_description = args->var_description;
         new_var->data_type = args->data_type;
@@ -306,7 +304,7 @@ flash_memory_fetch_value(PagePool_t* const self, const FetchValueInputArgs_t* co
         if (args->size_out_parameter < get_size_from_data_type(var->data_type)) {
             goto out_buffer_too_small;
         }
-        WORK_UN_STORED_VAR(&var, {
+        WORK_UN_STORED_VAR(var, {
             if (pool->hw_read(var->extra_metadata, var->fd, 
                         args->out_parameter, args->size_out_parameter) < 0) {
             goto hw_read_error;
@@ -342,7 +340,7 @@ flash_memory_update_value(PagePool_t* const self,const UpdateValueInputArgs_t* c
         if (args->size_new_value > get_size_from_data_type(var->data_type)) {
             goto new_var_too_big;
         }
-        WORK_UN_STORED_VAR(&var, {
+        WORK_UN_STORED_VAR(var, {
             if (pool->hw_write(var->extra_metadata,args->var_id, 
                         args->new_value,args->size_new_value) < 0) 
             {
@@ -379,7 +377,7 @@ flash_memory_get_var_metadata(PagePool_t* const self, const FlashDecriptor_t var
     INIT_CHECK(pool, {goto pool_not_initialized;});
 
     FIND_VAR_AND_EXECUTE_EXPR_ON_IT(pool,var_id,{
-        WORK_UN_STORED_VAR(&var, {
+        WORK_UN_STORED_VAR(var, {
             const StoredVar* c_var = var;
             args->data_type = c_var->data_type;
             args->var_description = var->var_description;
