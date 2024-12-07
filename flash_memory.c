@@ -17,7 +17,7 @@ typedef struct StoredVar{
 }StoredVar;
 
 struct PagePool{
-#if __STDC_VERSION__  >= 201112L
+#if __STDC_VERSION__  >= 201112L | defined (__TASKING__)
     atomic_uchar next_var;
 #else
     uint8_t next_var;
@@ -49,13 +49,13 @@ uint8_t assert_size_stored_var_1[(sizeof(StoredVar) == STORED_VAR_SIZE) ? 1 : -1
 
 #define INIT_CHECK(pool,exp) if (!pool->hw_read) {exp}
 
-#if __STDC_VERSION__ >= 201112L
+#if __STDC_VERSION__ >= 201112L | defined (__TASKING__)
 #define EXTRACT_NEXT_VAR(pool) atomic_load(&pool->next_var)
 #define INCREASE_NEXT_VAR(pool) atomic_fetch_add(&pool->next_var, 1)
 #else
 #define EXTRACT_NEXT_VAR(pool) pool->next_var
 #define INCREASE_NEXT_VAR(pool) pool->next_var++
-#endif /* if __STDC__ == 201112L */
+#endif /* if __STDC__ == 201112L | defined (__TASKING__) */
 
 #define WORK_UN_STORED_VAR(new_var,exp)\
     /*wait for lock to be release and then lock*/\
