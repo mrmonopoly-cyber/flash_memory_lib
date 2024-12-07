@@ -22,7 +22,7 @@ typedef struct StoredVar{
 }StoredVar;
 
 struct PagePool{
-#if __STDC_VERSION__  >= 201112L | defined (__TASKING__)
+#if __STDC_VERSION__  >= 201112L
     atomic_uchar next_var;
 #else
     uint16_t next_var_lock;
