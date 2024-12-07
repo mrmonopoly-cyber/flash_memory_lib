@@ -11,7 +11,6 @@
 typedef struct StoredVar{
 #if __STDC_VERSION__ >= 201112L
     atomic_flag lock;
-
 #else
     uint8_t lock;
 #endif
@@ -68,6 +67,22 @@ uint8_t assert_size_stored_var_1[(sizeof(StoredVar) == STORED_VAR_SIZE) ? 1 : -1
     exp;\
     /*unlock*/\
     atomic_flag_clear(&new_var->lock);
+#elif defined(__TASKING__)
+#define EXTRACT_NEXT_VAR(pool,out_var) \
+    while(pool->next_var_lock) {}\
+    __putbit(1,&pool->next_var_lock,0) ;\
+    out_var = pool->next_var;\
+    __putbit(0,&pool->next_var_lock,0) ;
+#define INCREASE_NEXT_VAR(pool) \
+while(pool->next_var_lock) {}\
+    __putbit(1,&pool->next_var_lock,0) ;\
+    pool->next_var++;\
+    __putbit(0,&pool->next_var_lock,0) ;
+#define WORK_UN_STORED_VAR(new_var,exp) \
+        while (new_var->lock){}\
+        __putbit(1,&pool->next_var_lock,0) ;\
+        exp;\
+        __putbit(0,&pool->next_var_lock,0) ;
 #else 
 #define EXTRACT_NEXT_VAR(pool,out_var) \
     while(pool->next_var_lock) {}\
@@ -258,8 +273,11 @@ flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* c
     if (data_size < 0) {
         goto error_computing_size_of_var;
     }
-    WORK_UN_STORED_VAR(new_var,{ if(pool->hw_write(new_var->extra_metadata,new_var->fd,args->value, data_size) < 0){ goto error_hw_writing_bytes;
-        }
+    WORK_UN_STORED_VAR(new_var,{
+            if(pool->hw_write(new_var->extra_metadata,new_var->fd,args->value, data_size) < 0)
+            {
+                goto error_hw_writing_bytes;
+            }
         new_var->var_description = args->var_description;
         new_var->data_type = args->data_type;
     })
