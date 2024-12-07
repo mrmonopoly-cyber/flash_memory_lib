@@ -1,6 +1,6 @@
 #include "./flash_memory.h"
 
-#if __STDC_VERSION__ >= 201112L | defined (__TASKING__)
+#if __STDC_VERSION__ >= 201112L
 #include <stdatomic.h>
 #endif
 #include <stdint.h>
@@ -9,7 +9,12 @@
 
 //private
 typedef struct StoredVar{
+#if __STDC_VERSION__ >= 201112L
     atomic_flag lock;
+
+#else
+    uint8_t lock;
+#endif
     enum DataTypesInFlash data_type;
     FlashDecriptor_t fd;
     char* var_description;
@@ -20,12 +25,17 @@ struct PagePool{
 #if __STDC_VERSION__  >= 201112L | defined (__TASKING__)
     atomic_uchar next_var;
 #else
+    uint8_t next_var_lock;
     uint8_t next_var;
 #endif
     uint8_t max_number_of_vars;
     hardware_read hw_read;
     hardware_write hw_write;
+#if __STDC_VERSION__ >= 201112L
     atomic_flag hw_id_lock;
+#else
+    uint8_t hw_id_lock;
+#endif
     create_id_var hw_id_var;
     free_hw_metadata free_metadata;
     StoredVar vars[];
@@ -49,24 +59,38 @@ uint8_t assert_size_stored_var_1[(sizeof(StoredVar) == STORED_VAR_SIZE) ? 1 : -1
 
 #define INIT_CHECK(pool,exp) if (!pool->hw_read) {exp}
 
-#if __STDC_VERSION__ >= 201112L | defined (__TASKING__)
-#define EXTRACT_NEXT_VAR(pool) atomic_load(&pool->next_var)
+#if __STDC_VERSION__ >= 201112L
+#define EXTRACT_NEXT_VAR(pool,out_var) out_var = atomic_load(&pool->next_var)
 #define INCREASE_NEXT_VAR(pool) atomic_fetch_add(&pool->next_var, 1)
-#else
-#define EXTRACT_NEXT_VAR(pool) pool->next_var
-#define INCREASE_NEXT_VAR(pool) pool->next_var++
-#endif /* if __STDC__ == 201112L | defined (__TASKING__) */
-
 #define WORK_UN_STORED_VAR(new_var,exp)\
     /*wait for lock to be release and then lock*/\
     while (atomic_flag_test_and_set(new_var->lock)) {};\
     exp;\
     /*unlock*/\
     atomic_flag_clear(new_var->lock);
+#else 
+#define EXTRACT_NEXT_VAR(pool,out_var) \
+    while(pool->next_var_lock) {}\
+    pool->next_var_lock = 1;\
+    out_var = pool->next_var;\
+    pool->next_var_lock=0;
+#define INCREASE_NEXT_VAR(pool) \
+while(pool->next_var_lock) {}\
+    pool->next_var_lock = 1;\
+    pool->next_var++;\
+    pool->next_var_lock=0;
+#define WORK_UN_STORED_VAR(new_var,exp) \
+        while (new_var->lock)) {};\
+        new_var->lock=1;\ 87
+        exp;\
+        new_var->lock=0;
+#endif /* if __STDC__ == 201112L | defined (__TASKING__) */
 
 #define FIND_VAR_AND_EXECUTE_EXPR_ON_IT(pool,var_id,expr)\
     StoredVar* var = NULL;\
-    for (uint8_t i=0; i<EXTRACT_NEXT_VAR(pool); i++) {\
+    uint16_t max = 0;\
+    EXTRACT_NEXT_VAR(pool, max);\
+    for (uint8_t i=0; i<max; i++) {\
         var = &pool->vars[i];\
         if (var->fd == var_id) {\
             expr;\
@@ -216,18 +240,19 @@ flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* c
     PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
     INIT_CHECK(pool, {goto pool_not_initialized;});
 
-    uint8_t next_var = EXTRACT_NEXT_VAR(pool);
+    uint8_t next_var = 0;
+    EXTRACT_NEXT_VAR(pool,next_var);
     if (next_var >= pool->max_number_of_vars) {
         goto full_pool;
     }
     StoredVar* new_var = &pool->vars[next_var];
     void** extra_metadata = &new_var->extra_metadata;
     *o_fd = 0;
-    while (atomic_flag_test_and_set(&pool->hw_id_lock)) {}
+    //while (atomic_flag_test_and_set(&pool->hw_id_lock)) {}
         if(pool->hw_id_var(args->data_type,&new_var->fd, extra_metadata ) < 0){
             goto error_assigning_fd_to_var;
         }
-    atomic_flag_clear(&pool->hw_id_lock);
+    //atomic_flag_clear(&pool->hw_id_lock);
 
     int16_t data_size = get_size_from_data_type(args->data_type);
     if (data_size < 0) {
