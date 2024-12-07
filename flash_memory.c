@@ -9,7 +9,7 @@
 
 //private
 typedef struct StoredVar{
-    _Atomic uint8_t lock;
+    atomic_flag lock;
     enum DataTypesInFlash data_type;
     FlashDecriptor_t fd;
     char* var_description;
@@ -25,16 +25,17 @@ struct PagePool{
     uint8_t max_number_of_vars;
     hardware_read hw_read;
     hardware_write hw_write;
+    atomic_flag hw_id_lock;
     create_id_var hw_id_var;
     free_hw_metadata free_metadata;
     StoredVar vars[];
 };
 
 #ifdef DEBUG
-uint8_t g = sizeof(StoredVar);
-uint8_t g1 = sizeof(struct PagePool);
+const uint8_t st_var = sizeof(StoredVar);
+const uint8_t page_pool = sizeof(struct PagePool);
 uint8_t assert_size_pagepool[(sizeof(struct PagePool) == BASE_PAGEPOOL_T_SIZE ) ? 1 : -1] = {};
-uint8_t assert_size_stored_var_1[(sizeof(struct StoredVar) == STORED_VAR_SIZE) ? 1 : -1] = {};
+uint8_t assert_size_stored_var_1[(sizeof(StoredVar) == STORED_VAR_SIZE) ? 1 : -1] = {};
 #endif
 
 #define CHECK_INIT(page_pool,ret_err) if (!page_pool.start_address_flash) {return ret_err;}
@@ -56,8 +57,24 @@ uint8_t assert_size_stored_var_1[(sizeof(struct StoredVar) == STORED_VAR_SIZE) ?
 #define INCREASE_NEXT_VAR(pool) pool->next_var++
 #endif /* if __STDC__ == 201112L */
 
+#define WORK_UN_STORED_VAR(new_var,exp)\
+    /*wait for lock to be release and then lock*/\
+    while (atomic_flag_test_and_set(new_var->lock)) {};\
+    exp;\
+    /*unlock*/\
+    atomic_flag_clear(new_var->lock);
 
 #define FIND_VAR_AND_EXECUTE_EXPR_ON_IT(pool,var_id,expr)\
+    StoredVar* var = NULL;\
+    for (uint8_t i=0; i<EXTRACT_NEXT_VAR(pool); i++) {\
+        var = &pool->vars[i];\
+        if (var->fd == var_id) {\
+            expr;\
+        }\
+    }\
+    goto variable_not_found;
+
+#define CONST_FIND_VAR_AND_EXECUTE_EXPR_ON_IT(pool,var_id,expr)\
     const StoredVar* var = NULL;\
     for (uint8_t i=0; i<EXTRACT_NEXT_VAR(pool); i++) {\
         var = &pool->vars[i];\
@@ -206,19 +223,24 @@ flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputArgs_t* c
     StoredVar* new_var = &pool->vars[next_var];
     void** extra_metadata = &new_var->extra_metadata;
     *o_fd = 0;
-    if(pool->hw_id_var(args->data_type,&new_var->fd, extra_metadata ) < 0){
-        goto error_assigning_fd_to_var;
-    }
+    while (atomic_flag_test_and_set(&pool->hw_id_lock)) {}
+        if(pool->hw_id_var(args->data_type,&new_var->fd, extra_metadata ) < 0){
+            goto error_assigning_fd_to_var;
+        }
+    atomic_flag_clear(&pool->hw_id_lock);
+
     int16_t data_size = get_size_from_data_type(args->data_type);
     if (data_size < 0) {
         goto error_computing_size_of_var;
     }
+    WORK_UN_STORED_VAR(&new_var,{
+        if(pool->hw_write(new_var->extra_metadata,new_var->fd,args->value, data_size) < 0){
+            goto error_hw_writing_bytes;
+        }
+        new_var->var_description = args->var_description;
+        new_var->data_type = args->data_type;
+    })
 
-    if(pool->hw_write(new_var->extra_metadata,new_var->fd,args->value, data_size) < 0){
-        goto error_hw_writing_bytes;
-    }
-    new_var->var_description = args->var_description;
-    new_var->data_type = args->data_type;
     *o_fd = new_var->fd;
     INCREASE_NEXT_VAR(pool);
 
@@ -246,12 +268,12 @@ err_input_ptr:
 }
 
 int8_t
-flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs_t* const args)
+flash_memory_fetch_value(PagePool_t* const self, const FetchValueInputArgs_t* const args)
 {
     int8_t err=0;
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_fetch_value_input(args) < 0, {goto err_input_ptr;})
-    CONST_PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
+    PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
     INIT_CHECK(pool, {goto pool_not_initialized;});
 
 
@@ -259,10 +281,12 @@ flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs
         if (args->size_out_parameter < get_size_from_data_type(var->data_type)) {
             goto out_buffer_too_small;
         }
-        if (pool->hw_read(var->extra_metadata, var->fd, 
+        WORK_UN_STORED_VAR(&var, {
+            if (pool->hw_read(var->extra_metadata, var->fd, 
                         args->out_parameter, args->size_out_parameter) < 0) {
             goto hw_read_error;
-        }
+            }
+        })
         return 0;
     });
 
@@ -293,10 +317,14 @@ flash_memory_update_value(PagePool_t* const self,const UpdateValueInputArgs_t* c
         if (args->size_new_value > get_size_from_data_type(var->data_type)) {
             goto new_var_too_big;
         }
-        if (pool->hw_write(var->extra_metadata,args->var_id, 
-                    args->new_value,args->size_new_value) < 0) {
-            goto hw_write_error;
-        }
+        WORK_UN_STORED_VAR(&var, {
+            if (pool->hw_write(var->extra_metadata,args->var_id, 
+                        args->new_value,args->size_new_value) < 0) 
+            {
+                goto hw_write_error;
+            }
+        });
+
         return 0;
     });
 
@@ -317,18 +345,21 @@ err_input_ptr:
 }
 
 int8_t
-flash_memory_get_var_metadata(const PagePool_t* const self, const FlashDecriptor_t var_id, MetadataStoreVariableInFlash_t* args)
+flash_memory_get_var_metadata(PagePool_t* const self, const FlashDecriptor_t var_id, MetadataStoreVariableInFlash_t* args)
 {
     int8_t err =0;
     INPUT_PTR_CHECK(self);
     THROW_ERROR_IF_HAPPEN(input_check_get_var_metadata_input(args) < 0, {goto err_input_ptr;});
-    CONST_PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
+    PAGEPOOL_T_INTO_PAGEPOOL(pool, self);
     INIT_CHECK(pool, {goto pool_not_initialized;});
 
     FIND_VAR_AND_EXECUTE_EXPR_ON_IT(pool,var_id,{
-        args->data_type = var->data_type;
-        args->var_description = var->var_description;
-        return 0;
+        WORK_UN_STORED_VAR(&var, {
+            const StoredVar* c_var = var;
+            args->data_type = c_var->data_type;
+            args->var_description = var->var_description;
+            return 0;
+        });
     });
 
 variable_not_found:

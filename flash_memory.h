@@ -15,7 +15,7 @@
 /** @def BASE_PAGEPOOL_T_SIZE
  *  @brief Base size of the PagePool_t structure in bytes.
  */
-#define BASE_PAGEPOOL_T_SIZE 40
+#define BASE_PAGEPOOL_T_SIZE 48
 
 /** @def STORED_VAR_SIZE
  *  @brief Size of a single stored variable in bytes.
@@ -199,7 +199,7 @@ int8_t flash_memory_store_new_value(PagePool_t* self, const StoreNewValueInputAr
  * @param args Pointer to the input arguments for fetching a value.
  * @return Status code (0 for success, non-zero for failure).
  */
-int8_t flash_memory_fetch_value(const PagePool_t* const self, const FetchValueInputArgs_t* const args);
+int8_t flash_memory_fetch_value(PagePool_t* const self, const FetchValueInputArgs_t* const args);
 
 /**
  * @brief Update a value in flash memory.
@@ -218,7 +218,7 @@ int8_t flash_memory_update_value(PagePool_t* const self, const UpdateValueInputA
  * @param args Pointer to the MetadataStoreVariableInFlash_t structure.
  * @return Status code (0 for success, non-zero for failure).
  */
- int8_t flash_memory_get_var_metadata(const PagePool_t* const self, const FlashDecriptor_t var_id, MetadataStoreVariableInFlash_t* out);
+ int8_t flash_memory_get_var_metadata(PagePool_t* const self, const FlashDecriptor_t var_id, MetadataStoreVariableInFlash_t* out);
 #ifdef DEBUG
  /**
   * @brief Perform an integrity check on the PagePool_t instance.
